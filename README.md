@@ -1,4 +1,4 @@
-# WinUtil 中文汉化版（非官方）— 2026-01-03/Release 25.12.18同步版本
+# WinUtil 中文汉化版 — 2026-01-03/Release 25.12.18同步版本
 <img width="2000" height="1583" alt="PixPin_2026-01-03_12-08-32" src="https://github.com/user-attachments/assets/fa871cb1-4d96-4f2e-9a9d-99730a720812" />
 
 
