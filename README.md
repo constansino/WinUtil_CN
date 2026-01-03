@@ -15,13 +15,13 @@
 
 ## 使用方法（建议）
 
-### 傻瓜式
+###  一。傻瓜式
 powershell管理员执行
 
 ```powershell
 irm "https://raw.githubusercontent.com/constansino/WinUtil_CN/refs/heads/main/winutil.zh_CN.commented.20260103.ps1" | iex
 ````
-### 更推荐的方式：下载到本地后运行（更安全、可审计）
+### 二。更推荐的方式：下载到本地后运行（更安全、可审计）
 1. 下载汉化版脚本到本地（`winutil.zh_CN...ps1`）
 2. 打开 PowerShell（建议管理员权限）
 3. 解除“来自互联网文件”的锁定（避免无法运行/闪退）：
