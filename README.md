@@ -1,5 +1,9 @@
 # WinUtil 中文汉化版 — 2026-01-03/Release 25.12.18同步版本
 <img width="2000" height="1583" alt="PixPin_2026-01-03_12-08-32" src="https://github.com/user-attachments/assets/fa871cb1-4d96-4f2e-9a9d-99730a720812" />
+<img width="2018" height="1285" alt="PixPin_2026-01-05_14-51-01" src="https://github.com/user-attachments/assets/e30b0920-273c-4af9-b445-c674adf85c45" />
+<img width="2018" height="1285" alt="PixPin_2026-01-05_14-51-12" src="https://github.com/user-attachments/assets/ffd4a92c-d0c2-4cb0-a29f-b18e3493020e" />
+<img width="2018" height="1285" alt="PixPin_2026-01-05_14-51-29" src="https://github.com/user-attachments/assets/95d505ab-1113-4593-8dc3-191ec53ca0b0" />
+
 
 
 首先非常感谢 Chris Titus Tech 以及所有贡献者开发并维护 WinUtil。这个工具把“安装软件 / 系统优化 / 修复 / 更新策略 / MicroWin”等常用功能整合得非常清晰，对普通用户也很友好。
