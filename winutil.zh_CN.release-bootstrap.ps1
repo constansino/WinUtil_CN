@@ -9,7 +9,7 @@ try {
 } catch {
 }
 
-$ScriptUrl = 'https://github.com/constansino/WinUtil_CN/releases/download/26.04.21-cn.20260510/winutil.zh_CN.commented.20260510.ps1'
+$ScriptUrl = 'https://github.com/constansino/WinUtil_CN/releases/download/26.08.04-cn.20260804/winutil.zh_CN.commented.20260804.ps1'
 $Response = Invoke-WebRequest -Uri $ScriptUrl -UseBasicParsing
 
 if ($null -ne $Response.RawContentStream) {

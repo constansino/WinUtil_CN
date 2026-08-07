@@ -4,8 +4,8 @@ WinUtil_CN 是 **Chris Titus Tech WinUtil** 的**中文汉化版 / 中文注释�
 
 This repository is a **Chinese localization of Chris Titus Tech WinUtil**. It keeps the upstream WinUtil logic intact as much as possible, while translating user-facing text and adding Chinese explanations for Windows tweaks, repair options, update policies, and Win11ISO workflow.
 
-当前同步版本：**WinUtil Release 26.04.21**  
-当前中文维护日期：**2026-05-10**
+当前同步版本：**WinUtil Release 26.08.04**<br>
+当前中文维护日期：**2026-08-04**
 
 <img width="2000" height="1583" alt="WinUtil_CN 中文界面截图 1" src="https://github.com/user-attachments/assets/fa871cb1-4d96-4f2e-9a9d-99730a720812" />
 <img width="2018" height="1285" alt="WinUtil_CN 中文界面截图 2" src="https://github.com/user-attachments/assets/e30b0920-273c-4af9-b445-c674adf85c45" />
@@ -75,6 +75,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 ### 1. 顶部导航和常用按钮
 
 - `Install / Tweaks / Config / Updates / Win11ISO` 已补充中文标签和常用提示。
+- 安装页新增的软件分类筛选、Tweaks 高级选项和 AppX 移除页面已汉化。
 
 ### 2. Tweaks 页面重点汉化
 
@@ -85,6 +86,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 ### 3. 其他页面
 
 - `Install / Config / Updates / Win11ISO` 已补充常用区域的中文说明。
+- 新版 Windows Update 三种策略卡片、AppX 操作状态和 Win11ISO 运行提示已补齐中文。
 - 软件名称如 `7-Zip`、`VS Code`、`PowerShell 7` 通常保留原产品名，避免对照困难。
 
 ## 上游同步策略
@@ -99,14 +101,14 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 ## 文件说明
 
 - `winutil.zh_CN.ps1`：稳定文件名，始终指向当前推荐运行版本
-- `winutil.zh_CN.commented.20260510.ps1`：当前中文注释 + 中文界面维护版本
-- `winutil.zh_CN.full.patch.20260510.diff`：基于上游 `26.04.21` 生成的完整 patch
+- `winutil.zh_CN.commented.20260804.ps1`：当前中文注释 + 中文界面维护版本
+- `winutil.zh_CN.full.patch.20260804.diff`：基于上游 `26.08.04` 生成的完整 patch（应用前需将官方脚本换行统一为 LF）
 
 ## 上游项目
 
 - 上游仓库：[ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil)
 - 上游发布页：[WinUtil Releases](https://github.com/ChrisTitusTech/winutil/releases)
-- 当前同步上游版本：[26.04.21](https://github.com/ChrisTitusTech/winutil/releases/tag/26.04.21)
+- 当前同步上游版本：[26.08.04](https://github.com/ChrisTitusTech/winutil/releases/tag/26.08.04)
 
 ## 贡献方式
 

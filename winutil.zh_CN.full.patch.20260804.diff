@@ -1,0 +1,3761 @@
+diff --git a/upstream.26.08.04.ps1 b/winutil.zh_CN.commented.20260804.ps1
+index ddbb748..56076c7 100644
+--- a/upstream.26.08.04.ps1
++++ b/winutil.zh_CN.commented.20260804.ps1
+@@ -1,10 +1,34 @@
+-<#
++﻿<#
+ .NOTES
+     Author         : Chris Titus @christitustech
+     Runspace Author: @DeveloperDurp
+     GitHub         : https://github.com/ChrisTitusTech
+     Version        : 26.08.04
+ #>
++<#
++.中文说明
++  这是 WinUtil（Chris Titus Tech）脚本的“中文注释 + 界面汉化”版本（非官方）。
++  目标：
++    1) 只翻译用户可见文字（界面按钮、提示、弹窗与部分日志），不改变原有功能逻辑；
++    2) 给主要模块与函数补充中文注释，帮助理解各项功能。
++  注意：
++    - 本文件基于上游 Release 26.08.04；后续同步仍应以上游脚本为逻辑基线。
++    - WinUtil 会修改系统设置、注册表、服务和更新策略；请先备份重要数据，建议先在虚拟机测试。
++
++.模块速览（对应 WinUtil 顶部标签页）
++  安装（Install）
++    - 安装、升级或卸载常用软件，并可筛选软件分类
++  优化（Tweaks）
++    - 应用推荐预设或按单项调整隐私、性能与界面设置
++    - AppX Removal 可移除或恢复所选系统应用
++  配置（Config）
++    - 导入或导出所选项目及执行配置
++  更新（Updates）
++    - 在推荐、Windows 默认和禁用更新三种策略间切换
++  Win11ISO（镜像制作）
++    - 验证 Windows 11 ISO、修改 install.wim，并输出 ISO 或写入 USB
++
++#>
+ 
+ param (
+     [string]$Config,
+@@ -19,12 +43,12 @@ if ($Offline) {
+ }
+ 
+ if ($ExecutionContext.SessionState.LanguageMode -ne 'FullLanguage') {
+-    Write-Host "WinUtil is unable to run on your system. PowerShell execution is restricted by security policies." -ForegroundColor Red
++    Write-Host "WinUtil 无法在当前系统上运行：PowerShell 执行受到安全策略限制。" -ForegroundColor Red
+     return
+ }
+ 
+ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+-    Write-Output "WinUtil needs to be run as Administrator. Attempting to relaunch."
++    Write-Output "WinUtil 需要以管理员身份运行，正在尝试提升权限并重新启动。"
+     $argList = @()
+ 
+     $PSBoundParameters.GetEnumerator() | ForEach-Object {
+@@ -81,6 +105,7 @@ Start-Transcript -Path $sync.logPath -Append -NoClobber | Out-Null
+ 
+ $Host.UI.RawUI.WindowTitle = "WinUtil"
+ Clear-Host
++# [功能说明] Add-SelectedAppsMenuItem：向界面或数据结构中添加条目（例如：已选应用、菜单项、按钮事件等）。
+ function Add-SelectedAppsMenuItem {
+     <#
+     .SYNOPSIS
+@@ -116,7 +141,7 @@ function Add-SelectedAppsMenuItem {
+     $selectedAppRemoveButton.Content = [string]([char]0xE711)
+     $selectedAppRemoveButton.HorizontalAlignment = "Center"
+     $selectedAppRemoveButton.Tag = $key
+-    $selectedAppRemoveButton.ToolTip = "Remove the App from Selection"
++    $selectedAppRemoveButton.ToolTip = "从选择中移除此应用"
+     $selectedAppRemoveButton.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, "MainForegroundColor")
+     $selectedAppRemoveButton.SetResourceReference([Windows.Controls.Control]::StyleProperty, "HoverButtonStyle")
+ 
+@@ -132,6 +157,8 @@ function Add-SelectedAppsMenuItem {
+     $sync.selectedAppsstackPanel.Children.Add($selectedAppGrid)
+ }
+ 
++# [功能说明] Close-WinUtilRunspacePool：关闭后台运行空间并释放相关资源。
++
+ function Close-WinUtilRunspacePool {
+     if ($null -eq $sync -or -not $sync.ContainsKey("runspace") -or $null -eq $sync.runspace) {
+         return
+@@ -151,6 +178,8 @@ function Close-WinUtilRunspacePool {
+     }
+ }
+ 
++# [功能说明] Find-AppsByNameOrDescription：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Find-AppsByNameOrDescription {
+     <#
+         .SYNOPSIS
+@@ -295,6 +324,8 @@ function Find-AppsByNameOrDescription {
+     }
+ }
+ 
++# [功能说明] Find-TweaksByNameOrDescription：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Find-TweaksByNameOrDescription {
+     <#
+         .SYNOPSIS
+@@ -605,6 +636,8 @@ function Find-TweaksByNameOrDescription {
+     }
+ }
+ 
++# [功能说明] Get-WinUtilInstalledAPPX：读取当前系统已安装的 AppX 软件包。
++
+ function Get-WinUtilInstalledAPPX {
+     <#
+ 
+@@ -715,6 +748,8 @@ function Get-WinUtilSelectedPackages {
+     return $packages
+ }
+ 
++# [功能说明] Get-WinUtilToggleStatus：获取信息或资源（如：ISO/语言/依赖工具路径、系统状态等）。
++
+ Function Get-WinUtilToggleStatus ($ToggleSwitch) {
+ 
+     $ToggleSwitchReg = $sync.configs.tweaks.$ToggleSwitch.registry
+@@ -756,6 +791,8 @@ Function Get-WinUtilToggleStatus ($ToggleSwitch) {
+     return $true
+ }
+ 
++# [功能说明] Get-WinUtilVariables：获取信息或资源（如：ISO/语言/依赖工具路径、系统状态等）。
++
+ function Get-WinUtilVariables {
+ 
+     <#
+@@ -787,6 +824,8 @@ function Get-WinUtilVariables {
+     return $keys
+ }
+ 
++    # [功能说明] Initialize-InstallAppArea：脚本内部函数（用于组织代码与复用逻辑）。
++
+     function Initialize-InstallAppArea {
+         <#
+             .SYNOPSIS
+@@ -834,6 +873,8 @@ function Get-WinUtilVariables {
+         return $itemsControl
+     }
+ 
++# [功能说明] Initialize-InstallAppEntry：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Initialize-InstallAppEntry {
+     <#
+         .SYNOPSIS
+@@ -949,6 +990,8 @@ function Initialize-InstallAppEntry {
+         return $checkbox
+     }
+ 
++# [功能说明] Initialize-InstallCategoryAppList：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Initialize-InstallCategoryAppList {
+     <#
+         .SYNOPSIS
+@@ -1052,6 +1095,8 @@ function Initialize-InstallCategoryAppList {
+         Start-WinUtilInstallAppRendering
+     }
+ 
++# [功能说明] Initialize-WinUtilRunspacePool：初始化后台任务使用的运行空间池。
++
+ function Initialize-WinUtilRunspacePool {
+     if ($sync.runspace -and $sync.runspace.RunspacePoolStateInfo.State -eq [System.Management.Automation.Runspaces.RunspacePoolState]::Opened) {
+         return $sync.runspace
+@@ -1150,6 +1195,8 @@ function Initialize-WinUtilTaskbarOverlayAssets {
+     }
+ }
+ 
++# [功能说明] Install-WinUtilAPPX：安装或恢复所选 AppX 软件包。
++
+ function Install-WinUtilAPPX {
+     <#
+ 
+@@ -1230,6 +1277,8 @@ function Install-WinUtilAPPX {
+     Install-WinUtilProgramWinget -Action Install -Programs @("msstore:$StoreId")
+ }
+ 
++# [功能说明] Install-WinUtilChoco：安装软件/组件（通常调用 winget/choco 或系统安装机制）。
++
+ function Install-WinUtilChoco {
+     if (-not (Get-Command -Name choco)) {
+       Write-Host "Chocolatey is not installed. Installing now..."
+@@ -1238,6 +1287,8 @@ function Install-WinUtilChoco {
+     }
+ }
+ 
++# [功能说明] Install-WinUtilProgramChoco：安装软件/组件（通常调用 winget/choco 或系统安装机制）。
++
+ function Install-WinUtilProgramChoco {
+     param (
+         [Parameter(Mandatory=$true)]
+@@ -1259,6 +1310,8 @@ function Install-WinUtilProgramChoco {
+     Write-WinUtilLog -Component "Package" -Message "$Action choco package(s) completed: $($Programs -join ', ') (exit code: $($process.ExitCode))"
+ }
+ 
++# [功能说明] Install-WinUtilProgramWinget：安装软件/组件（通常调用 winget/choco 或系统安装机制）。
++
+ Function Install-WinUtilProgramWinget {
+     param (
+         [Parameter(Mandatory=$true)]
+@@ -1292,6 +1345,8 @@ Function Install-WinUtilProgramWinget {
+     }
+ }
+ 
++# [功能说明] Install-WinUtilWinget：安装软件/组件（通常调用 winget/choco 或系统安装机制）。
++
+ function Install-WinUtilWinget {
+     <#
+ 
+@@ -1312,6 +1367,8 @@ function Install-WinUtilWinget {
+     Repair-WinGetPackageManager -AllUsers
+ }
+ 
++# [功能说明] Invoke-WinUtilAssets：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilAssets {
+   param (
+       $type,
+@@ -1530,6 +1587,8 @@ C 21.36,47.14 28.67,50.71 30.01,52.63
+   }
+ }
+ 
++# [功能说明] Invoke-WinUtilCurrentSystem：脚本内部函数（用于组织代码与复用逻辑）。
++
+ Function Invoke-WinUtilCurrentSystem {
+ 
+     <#
+@@ -1660,6 +1719,8 @@ Function Invoke-WinUtilCurrentSystem {
+     }
+ }
+ 
++# [功能说明] Invoke-WinUtilExplorerUpdate：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilExplorerUpdate {
+      <#
+     .SYNOPSIS
+@@ -1699,6 +1760,8 @@ public class Win32 {
+     }
+ }
+ 
++# [功能说明] Invoke-WinUtilFeatureInstall：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilFeatureInstall ($CheckBox) {
+     Write-WinUtilLog -Component "Feature" -Message "Applying feature action: $CheckBox"
+ 
+@@ -1722,6 +1785,8 @@ function Invoke-WinUtilFeatureInstall ($CheckBox) {
+     Write-WinUtilLog -Component "Feature" -Message "Feature action completed: $CheckBox"
+ }
+ 
++# [功能说明] Invoke-WinUtilFontScaling：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilFontScaling {
+     <#
+ 
+@@ -1808,6 +1873,8 @@ function Invoke-WinUtilFontScaling {
+     }
+ }
+ 
++# [功能说明] Invoke-WinUtilInstallPSProfile：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilInstallPSProfile {
+     if (-not (Get-Command wt)) {
+         Write-Host "Windows Terminal not found. Installing..."
+@@ -1830,7 +1897,7 @@ function Write-WinUtilISOLog {
+     $logLine = "[$ts] $Message"
+     $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+         $current = $sync["WPFWin11ISOStatusLog"].Text
+-        if ($current -eq "Ready. Please select a Windows 11 ISO to begin.") {
++        if ($current -eq "已就绪。请选择一个 Windows 11 ISO 以开始。") {
+             $sync["WPFWin11ISOStatusLog"].Text = $logLine
+         } else {
+             $sync["WPFWin11ISOStatusLog"].Text += "`n$logLine"
+@@ -1844,8 +1911,8 @@ function Invoke-WinUtilISOBrowse {
+     Add-Type -AssemblyName System.Windows.Forms
+ 
+     $dlg = [System.Windows.Forms.OpenFileDialog]::new()
+-    $dlg.Title            = "Select Windows 11 ISO"
+-    $dlg.Filter           = "ISO files (*.iso)|*.iso|All files (*.*)|*.*"
++    $dlg.Title            = "选择 Windows 11 ISO"
++    $dlg.Filter           = "ISO 文件 (*.iso)|*.iso|所有文件 (*.*)|*.*"
+     $dlg.InitialDirectory = [System.Environment]::GetFolderPath("Desktop")
+ 
+     if ($dlg.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { return }
+@@ -1854,26 +1921,26 @@ function Invoke-WinUtilISOBrowse {
+     $fileSizeGB = [math]::Round((Get-Item $isoPath).Length / 1GB, 2)
+ 
+     $sync["WPFWin11ISOPath"].Text           = $isoPath
+-    $sync["WPFWin11ISOFileInfo"].Text       = "File size: $fileSizeGB GB"
++    $sync["WPFWin11ISOFileInfo"].Text       = "文件大小：$fileSizeGB GB"
+     $sync["WPFWin11ISOFileInfo"].Visibility = "Visible"
+     $sync["WPFWin11ISOMountSection"].Visibility       = "Visible"
+     $sync["WPFWin11ISOVerifyResultPanel"].Visibility  = "Collapsed"
+     $sync["WPFWin11ISOModifySection"].Visibility      = "Collapsed"
+     $sync["WPFWin11ISOOutputSection"].Visibility      = "Collapsed"
+ 
+-    Write-WinUtilISOLog "ISO selected: $isoPath  ($fileSizeGB GB)"
++    Write-WinUtilISOLog "已选择 ISO：$isoPath  ($fileSizeGB GB)"
+ }
+ 
+ function Invoke-WinUtilISOMountAndVerify {
+     $isoPath = $sync["WPFWin11ISOPath"].Text
+ 
+-    if ([string]::IsNullOrWhiteSpace($isoPath) -or $isoPath -eq "No ISO selected...") {
+-        [System.Windows.MessageBox]::Show("Please select an ISO file first.", "No ISO Selected", "OK", "Warning")
++    if ([string]::IsNullOrWhiteSpace($isoPath) -or $isoPath -eq "尚未选择 ISO...") {
++        [System.Windows.MessageBox]::Show("请先选择 ISO 文件。", "未选择 ISO", "OK", "Warning")
+         return
+     }
+ 
+-    Write-WinUtilISOLog "Mounting ISO: $isoPath"
+-    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Mounting ISO..." -Percent 10
++    Write-WinUtilISOLog "正在挂载 ISO：$isoPath"
++    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在挂载 ISO..." -Percent 10
+     $sync["WPFWin11ISOBrowseButton"].IsEnabled = $false
+     $sync["WPFWin11ISOMountButton"].IsEnabled = $false
+     $sync["WPFWin11ISOModifyButton"].IsEnabled = $false
+@@ -1890,36 +1957,36 @@ function Invoke-WinUtilISOMountAndVerify {
+             } until ((Get-DiskImage -ImagePath $isoPath | Get-Volume).DriveLetter)
+ 
+             $driveLetter = (Get-DiskImage -ImagePath $isoPath | Get-Volume).DriveLetter + ":"
+-            Write-WinUtilISOLog "Mounted at drive $driveLetter"
++            Write-WinUtilISOLog "已挂载到驱动器 $driveLetter"
+ 
+-            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Verifying ISO contents..." -Percent 30
++            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在验证 ISO 内容..." -Percent 30
+ 
+             $wimPath = Join-Path $driveLetter "sources\install.wim"
+             $esdPath = Join-Path $driveLetter "sources\install.esd"
+ 
+             if (-not (Test-Path $wimPath) -and -not (Test-Path $esdPath)) {
+                 Dismount-DiskImage -ImagePath $isoPath
+-                Write-WinUtilISOLog "ERROR: install.wim/install.esd not found - not a valid Windows ISO."
++                Write-WinUtilISOLog "错误：未找到 install.wim/install.esd，这不是有效的 Windows ISO。"
+                 Invoke-WPFUIThread {
+                     [System.Windows.MessageBox]::Show(
+-                        "This does not appear to be a valid Windows ISO.`n`ninstall.wim / install.esd was not found.",
+-                        "Invalid ISO", "OK", "Error")
++                        "这似乎不是有效的 Windows ISO。`n`n未找到 install.wim / install.esd。",
++                        "无效的 ISO", "OK", "Error")
+                 }
+                 return
+             }
+ 
+             $activeWim = if (Test-Path $wimPath) { $wimPath } else { $esdPath }
+ 
+-            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Reading image metadata..." -Percent 55
++            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在读取镜像元数据..." -Percent 55
+             $imageInfo = Get-WindowsImage -ImagePath $activeWim | Select-Object ImageIndex, ImageName
+ 
+             if (-not ($imageInfo | Where-Object { $_.ImageName -match "Windows 11" })) {
+                 Dismount-DiskImage -ImagePath $isoPath
+-                Write-WinUtilISOLog "ERROR: No 'Windows 11' edition found in the image."
++                Write-WinUtilISOLog "错误：镜像中未找到 Windows 11 版本。"
+                 Invoke-WPFUIThread {
+                     [System.Windows.MessageBox]::Show(
+-                        "No Windows 11 edition was found in this ISO.`n`nOnly official Windows 11 ISOs are supported.",
+-                        "Not a Windows 11 ISO", "OK", "Error")
++                        "此 ISO 中未找到 Windows 11 版本。`n`n仅支持微软官方 Windows 11 ISO。",
++                        "不是 Windows 11 ISO", "OK", "Error")
+                 }
+                 return
+             }
+@@ -1930,7 +1997,7 @@ function Invoke-WinUtilISOMountAndVerify {
+             $sync["Win11ISOImagePath"]   = $isoPath
+ 
+             Invoke-WPFUIThread {
+-                $sync["WPFWin11ISOMountDriveLetter"].Text = "Mounted at: $driveLetter   |   Image file: $(Split-Path $activeWim -Leaf)"
++                $sync["WPFWin11ISOMountDriveLetter"].Text = "挂载位置：$driveLetter   |   镜像文件：$(Split-Path $activeWim -Leaf)"
+                 $sync["WPFWin11ISOEditionComboBox"].Items.Clear()
+                 foreach ($img in $imageInfo) {
+                     [void]$sync["WPFWin11ISOEditionComboBox"].Items.Add("$($img.ImageIndex): $($img.ImageName)")
+@@ -1949,15 +2016,15 @@ function Invoke-WinUtilISOMountAndVerify {
+                 $sync["WPFWin11ISOModifyButton"].IsEnabled = $true
+             }
+ 
+-            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "ISO verified" -Percent 100
+-            Write-WinUtilISOLog "ISO verified OK.  Editions found: $($imageInfo.Count)"
++            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "ISO 验证完成" -Percent 100
++            Write-WinUtilISOLog "ISO 验证通过。找到版本数：$($imageInfo.Count)"
+         } catch {
+             $errorMessage = $_
+-            Write-WinUtilISOLog "ERROR during mount/verify: $errorMessage"
++            Write-WinUtilISOLog "挂载或验证时出错：$errorMessage"
+             Invoke-WPFUIThread {
+                 [System.Windows.MessageBox]::Show(
+-                    "An error occurred while mounting or verifying the ISO:`n`n$errorMessage",
+-                    "Error", "OK", "Error")
++                    "挂载或验证 ISO 时发生错误：`n`n$errorMessage",
++                    "错误", "OK", "Error")
+             }
+         } finally {
+             Start-Sleep -Milliseconds 800
+@@ -1978,8 +2045,8 @@ function Invoke-WinUtilISOModify {
+ 
+     if (-not $isoPath) {
+         [System.Windows.MessageBox]::Show(
+-            "No verified ISO found. Please complete Steps 1 and 2 first.",
+-            "Not Ready", "OK", "Warning")
++            "未找到已验证的 ISO。请先完成步骤 1 和 2。",
++            "尚未就绪", "OK", "Warning")
+         return
+     }
+ 
+@@ -1990,8 +2057,8 @@ function Invoke-WinUtilISOModify {
+     } elseif ($sync["Win11ISOImageInfo"]) {
+         $selectedWimIndex = $sync["Win11ISOImageInfo"][0].ImageIndex
+     }
+-    $selectedEditionName = if ($selectedItem) { ($selectedItem -replace '^\d+:\s*', '') } else { "Unknown" }
+-    Write-WinUtilISOLog "Selected edition: $selectedEditionName (Index $selectedWimIndex)"
++    $selectedEditionName = if ($selectedItem) { ($selectedItem -replace '^\d+:\s*', '') } else { "未知" }
++    Write-WinUtilISOLog "已选择版本：$selectedEditionName（索引 $selectedWimIndex）"
+ 
+     $sync["WPFWin11ISOModifyButton"].IsEnabled = $false
+     $sync["Win11ISOModifying"] = $true
+@@ -2085,15 +2152,15 @@ function Invoke-WinUtilISOModify {
+                 $sync["WPFWin11ISOModifySection"].Visibility = "Collapsed"
+             })
+ 
+-            Log "Creating working directory: $workDir"
++            Log "正在创建工作目录：$workDir"
+             $isoContents = Join-Path $workDir "iso_contents"
+             New-Item -ItemType Directory -Path $isoContents -Force
+-            SetProgress "Copying ISO contents..." 10
++            SetProgress "正在复制 ISO 内容..." 10
+ 
+-            Log "Copying ISO contents from $driveLetter to $isoContents..."
++            Log "正在从 $driveLetter 复制 ISO 内容到 $isoContents..."
+             & robocopy $driveLetter $isoContents /E /NFL /NDL /NJH /NJS
+-            Log "ISO contents copied."
+-            SetProgress "Preparing setup media..." 25
++            Log "ISO 内容复制完成。"
++            SetProgress "正在准备安装介质..." 25
+ 
+             $sourceImageFileName = Split-Path $wimPath -Leaf
+             $localWim = Join-Path $isoContents "sources\$sourceImageFileName"
+@@ -2102,31 +2169,31 @@ function Invoke-WinUtilISOModify {
+             }
+             $selectedEditionId = Get-WinUtilEditionIdFromName -EditionName $selectedEditionName
+ 
+-            Log "Writing autounattend.xml and edition selection..."
++            Log "正在写入 autounattend.xml 和版本选择配置..."
+             Invoke-WinUtilISOScript -ISOContentsDir $isoContents -AutoUnattendXml $autounattendContent -InjectCurrentSystemDrivers $injectDrivers -InstallImagePath $localWim -InstallImageIndex $selectedWimIndex -InstallEditionId $selectedEditionId -Log { param($m) Log $m }
+ 
+-            SetProgress "Preserving install image..." 70
++            SetProgress "正在保留安装镜像..." 70
+             if ($injectDrivers) {
+                 Log "Added current-system drivers to $sourceImageFileName index $selectedWimIndex with one mount and commit."
+             } else {
+                 Log "Preserved the original $sourceImageFileName without mounting, exporting, or modifying it."
+             }
+ 
+-            SetProgress "Dismounting source ISO..." 80
+-            Log "Dismounting original ISO..."
++            SetProgress "正在卸载源 ISO..." 80
++            Log "正在卸载原始 ISO..."
+             Dismount-DiskImage -ImagePath $isoPath
+ 
+             $sync["Win11ISOWorkDir"]     = $workDir
+             $sync["Win11ISOContentsDir"] = $isoContents
+ 
+-            SetProgress "Modification complete" 100
+-            Log "install.wim modification complete. Choose an output option in Step 4."
++            SetProgress "修改完成" 100
++            Log "install.wim 修改完成。请在步骤 4 中选择输出方式。"
+ 
+             $sync["WPFWin11ISOOutputSection"].Dispatcher.Invoke([action]{
+                 $sync["WPFWin11ISOOutputSection"].Visibility = "Visible"
+             })
+         } catch {
+-            Log "ERROR during modification: $_"
++            Log "修改过程中出错：$_"
+ 
+             try {
+                 $mountedISO = Get-DiskImage -ImagePath $isoPath
+@@ -2145,8 +2212,8 @@ function Invoke-WinUtilISOModify {
+ 
+             $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+                 [System.Windows.MessageBox]::Show(
+-                    "An error occurred during install.wim modification:`n`n$_",
+-                    "Modification Error", "OK", "Error")
++                    "修改 install.wim 时发生错误：`n`n$_",
++                    "修改错误", "OK", "Error")
+             })
+         } finally {
+             Start-Sleep -Milliseconds 800
+@@ -2195,13 +2262,13 @@ function Invoke-WinUtilISOCheckExistingWork {
+     $sync["WPFWin11ISOOutputSection"].Visibility = "Visible"
+ 
+     $modified = $existingWorkDir.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
+-    Write-WinUtilISOLog "Existing working directory found: $($existingWorkDir.FullName)"
+-    Write-WinUtilISOLog "Last modified: $modified - Skipping Steps 1-3 and resuming at Step 4."
+-    Write-WinUtilISOLog "Click 'Clean & Reset' if you want to start over with a new ISO."
++    Write-WinUtilISOLog "找到现有工作目录：$($existingWorkDir.FullName)"
++    Write-WinUtilISOLog "最后修改时间：$modified - 跳过步骤 1-3，从步骤 4 继续。"
++    Write-WinUtilISOLog "如需改用新的 ISO 重新开始，请点击“清理并重置”。"
+ 
+     [System.Windows.MessageBox]::Show(
+-        "A previous WinUtil ISO working directory was found:`n`n$($existingWorkDir.FullName)`n`n(Last modified: $modified)`n`nStep 4 (output options) has been restored so you can save the already-modified image.`n`nClick 'Clean & Reset' in Step 4 if you want to start over.",
+-        "Existing Work Found", "OK", "Info")
++        "发现之前的 WinUtil ISO 工作目录：`n`n$($existingWorkDir.FullName)`n`n（最后修改：$modified）`n`n已恢复步骤 4（输出选项），你可以保存已修改的镜像。`n`n如需重新开始，请在步骤 4 点击“清理并重置”。",
++        "找到现有工作目录", "OK", "Info")
+ }
+ 
+ function Invoke-WinUtilISOCleanAndReset {
+@@ -2209,8 +2276,8 @@ function Invoke-WinUtilISOCleanAndReset {
+ 
+     if ($workDir -and (Test-Path $workDir)) {
+         $confirm = [System.Windows.MessageBox]::Show(
+-            "This will delete the temporary working directory:`n`n$workDir`n`nAnd reset the interface back to the start.`n`nContinue?",
+-            "Clean & Reset", "YesNo", "Warning")
++            "这将删除临时工作目录：`n`n$workDir`n`n并把界面重置到开始状态。`n`n是否继续？",
++            "清理并重置", "YesNo", "Warning")
+         if ($confirm -ne "Yes") { return }
+     }
+ 
+@@ -2308,8 +2375,8 @@ function Invoke-WinUtilISOCleanAndReset {
+                 Log "No temp directory found - resetting UI."
+             }
+ 
+-            SetProgress "Resetting UI..." 95
+-            Log "Resetting interface..."
++            SetProgress "正在重置界面..." 95
++            Log "正在重置界面..."
+ 
+             $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+                 $sync["Win11ISOWorkDir"]     = $null
+@@ -2320,7 +2387,7 @@ function Invoke-WinUtilISOCleanAndReset {
+                 $sync["Win11ISOImageInfo"]   = $null
+                 $sync["Win11ISOUSBDisks"]    = $null
+ 
+-                $sync["WPFWin11ISOPath"].Text                   = "No ISO selected..."
++                $sync["WPFWin11ISOPath"].Text                   = "尚未选择 ISO..."
+                 $sync["WPFWin11ISOFileInfo"].Visibility          = "Collapsed"
+                 $sync["WPFWin11ISOVerifyResultPanel"].Visibility = "Collapsed"
+                 $sync["WPFWin11ISOOptionUSB"].Visibility         = "Collapsed"
+@@ -2336,7 +2403,7 @@ function Invoke-WinUtilISOCleanAndReset {
+                 $sync["WPFTweaksProgressLabel"].ToolTip   = ""
+                 $sync["WPFTweaksProgressValue"].Value     = 0
+ 
+-                $sync["WPFWin11ISOStatusLog"].Text   = "Ready. Please select a Windows 11 ISO to begin."
++                $sync["WPFWin11ISOStatusLog"].Text   = "已就绪。请选择一个 Windows 11 ISO 以开始。"
+             })
+         } catch {
+             Log "ERROR during Clean & Reset: $_"
+@@ -2360,16 +2427,16 @@ function Invoke-WinUtilISOExport {
+ 
+     if (-not $contentsDir -or -not (Test-Path $contentsDir)) {
+         [System.Windows.MessageBox]::Show(
+-            "No modified ISO content found.  Please complete Steps 1-3 first.",
+-            "Not Ready", "OK", "Warning")
++            "未找到修改后的 ISO 内容。请先完成步骤 1-3。",
++            "尚未就绪", "OK", "Warning")
+         return
+     }
+ 
+     Add-Type -AssemblyName System.Windows.Forms
+ 
+     $dlg = [System.Windows.Forms.SaveFileDialog]::new()
+-    $dlg.Title            = "Save Modified Windows 11 ISO"
+-    $dlg.Filter           = "ISO files (*.iso)|*.iso"
++    $dlg.Title            = "保存修改后的 Windows 11 ISO"
++    $dlg.Filter           = "ISO 文件 (*.iso)|*.iso"
+     $dlg.FileName         = "Win11_Modified_$(Get-Date -Format 'yyyyMMdd').iso"
+     $dlg.InitialDirectory = [System.Environment]::GetFolderPath("Desktop")
+ 
+@@ -2387,29 +2454,29 @@ function Invoke-WinUtilISOExport {
+     }
+ 
+     if (-not $oscdimg) {
+-        Write-WinUtilISOLog "oscdimg.exe not found. Attempting to install via winget..."
++        Write-WinUtilISOLog "未找到 oscdimg.exe，正在尝试通过 winget 安装..."
+         try {
+             # First ensure winget is installed and operational
+             Install-WinUtilWinget
+ 
+             $winget = Get-Command winget
+             $result = & $winget install -e --id Microsoft.OSCDIMG --accept-package-agreements --accept-source-agreements
+-            Write-WinUtilISOLog "winget output: $result"
++            Write-WinUtilISOLog "winget 输出：$result"
+             $oscdimg = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter "oscdimg.exe" |
+                        Where-Object { $_.FullName -match 'Microsoft\.OSCDIMG' } |
+                        Select-Object -First 1 -ExpandProperty FullName
+         } catch {
+-            Write-WinUtilISOLog "winget not available or install failed: $_"
++            Write-WinUtilISOLog "winget 不可用或安装失败：$_"
+         }
+ 
+         if (-not $oscdimg) {
+-            Write-WinUtilISOLog "oscdimg.exe still not found after install attempt."
++            Write-WinUtilISOLog "尝试安装后仍未找到 oscdimg.exe。"
+             [System.Windows.MessageBox]::Show(
+-                "oscdimg.exe could not be found or installed automatically.`n`nPlease install it manually:`n  winget install -e --id Microsoft.OSCDIMG`n`nOr install the Windows ADK from:`nhttps://learn.microsoft.com/windows-hardware/get-started/adk-install",
+-                "oscdimg Not Found", "OK", "Warning")
++                "无法找到或自动安装 oscdimg.exe。`n`n请手动安装：`n  winget install -e --id Microsoft.OSCDIMG`n`n或从以下地址安装 Windows ADK：`nhttps://learn.microsoft.com/windows-hardware/get-started/adk-install",
++                "未找到 oscdimg", "OK", "Warning")
+             return
+         }
+-        Write-WinUtilISOLog "oscdimg.exe installed successfully."
++        Write-WinUtilISOLog "oscdimg.exe 安装成功。"
+     }
+ 
+     $sync["WPFWin11ISOChooseISOButton"].IsEnabled = $false
+@@ -2442,13 +2509,13 @@ function Invoke-WinUtilISOExport {
+         }
+ 
+         try {
+-            Write-WinUtilISOLog "Exporting to ISO: $outputISO"
+-            SetProgress "Building ISO..." 10
++            Write-WinUtilISOLog "正在导出 ISO：$outputISO"
++            SetProgress "正在生成 ISO..." 10
+ 
+             $bootData    = "2#p0,e,b`"$contentsDir\boot\etfsboot.com`"#pEF,e,b`"$contentsDir\efi\microsoft\boot\efisys.bin`""
+             $oscdimgArgs = @("-m", "-o", "-u2", "-udfver102", "-bootdata:$bootData", "-l`"CTOS_MODIFIED`"", "`"$contentsDir`"", "`"$outputISO`"")
+ 
+-            Write-WinUtilISOLog "Running oscdimg..."
++            Write-WinUtilISOLog "正在运行 oscdimg..."
+ 
+             $psi = [System.Diagnostics.ProcessStartInfo]::new()
+             $psi.FileName               = $oscdimg
+@@ -2477,23 +2544,23 @@ function Invoke-WinUtilISOExport {
+             }
+ 
+             if ($proc.ExitCode -eq 0) {
+-                SetProgress "ISO exported" 100
+-                Write-WinUtilISOLog "ISO exported successfully: $outputISO"
++                SetProgress "ISO 导出完成" 100
++                Write-WinUtilISOLog "ISO 导出成功：$outputISO"
+                 $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+-                    [System.Windows.MessageBox]::Show("ISO exported successfully!`n`n$outputISO", "Export Complete", "OK", "Info")
++                    [System.Windows.MessageBox]::Show("ISO 导出成功！`n`n$outputISO", "导出完成", "OK", "Info")
+                 })
+             } else {
+-                Write-WinUtilISOLog "oscdimg exited with code $($proc.ExitCode)."
++                Write-WinUtilISOLog "oscdimg 已退出，代码：$($proc.ExitCode)。"
+                 $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+                     [System.Windows.MessageBox]::Show(
+-                        "oscdimg exited with code $($proc.ExitCode).`nCheck the status log for details.",
+-                        "Export Error", "OK", "Error")
++                        "oscdimg 已退出，代码：$($proc.ExitCode)。`n请查看状态日志了解详情。",
++                        "导出错误", "OK", "Error")
+                 })
+             }
+         } catch {
+-            Write-WinUtilISOLog "ERROR during ISO export: $_"
++            Write-WinUtilISOLog "导出 ISO 时出错：$_"
+             $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+-                [System.Windows.MessageBox]::Show("ISO export failed:`n`n$_", "Error", "OK", "Error")
++                [System.Windows.MessageBox]::Show("ISO 导出失败：`n`n$_", "错误", "OK", "Error")
+             })
+         } finally {
+             Start-Sleep -Milliseconds 800
+@@ -3059,10 +3126,10 @@ function Invoke-WinUtilISORefreshUSBDrives {
+     $combo.Items.Clear()
+ 
+     if ($removable.Count -eq 0) {
+-        $combo.Items.Add("No USB drives detected.")
++        $combo.Items.Add("未检测到 USB 驱动器。")
+         $combo.SelectedIndex = 0
+         $sync["Win11ISOUSBDisks"] = @()
+-        Write-WinUtilISOLog "No USB drives detected."
++        Write-WinUtilISOLog "未检测到 USB 驱动器。"
+         return
+     }
+ 
+@@ -3071,7 +3138,7 @@ function Invoke-WinUtilISORefreshUSBDrives {
+         $combo.Items.Add("Disk $($disk.Number): $($disk.FriendlyName)  [$sizeGB GB] - $($disk.PartitionStyle)")
+     }
+     $combo.SelectedIndex = 0
+-    Write-WinUtilISOLog "Found $($removable.Count) USB drive(s)."
++    Write-WinUtilISOLog "找到 $($removable.Count) 个 USB 驱动器。"
+     $sync["Win11ISOUSBDisks"] = $removable
+ }
+ 
+@@ -3080,7 +3147,7 @@ function Invoke-WinUtilISOWriteUSB {
+     $usbDisks    = $sync["Win11ISOUSBDisks"]
+ 
+     if (-not $contentsDir -or -not (Test-Path $contentsDir)) {
+-        [System.Windows.MessageBox]::Show("No modified ISO content found. Please complete Steps 1-3 first.", "Not Ready", "OK", "Warning")
++        [System.Windows.MessageBox]::Show("未找到修改后的 ISO 内容。请先完成步骤 1-3。", "尚未就绪", "OK", "Warning")
+         return
+     }
+ 
+@@ -3092,8 +3159,8 @@ function Invoke-WinUtilISOWriteUSB {
+         $esdSizeMB = [math]::Ceiling($esdSizeBytes / 1MB)
+         if ($esdSizeBytes -ge 4GB) {
+             [System.Windows.MessageBox]::Show(
+-                "This ISO uses an install.esd file that is $esdSizeMB MB. WinUtil's FAT32 USB format cannot store files larger than 4 GB.`n`nExport an ISO instead or use media with install.wim.",
+-                "USB Creation Not Supported", "OK", "Warning")
++                "此 ISO 使用大小为 $esdSizeMB MB 的 install.esd。WinUtil 的 FAT32 USB 格式无法存储超过 4 GB 的文件。`n`n请改为导出 ISO，或使用包含 install.wim 的介质。",
++                "不支持创建此 USB", "OK", "Warning")
+             return
+         }
+     }
+@@ -3112,7 +3179,7 @@ function Invoke-WinUtilISOWriteUSB {
+     }
+ 
+     if (-not $targetDisk) {
+-        [System.Windows.MessageBox]::Show("Please select a USB drive from the dropdown.", "No Drive Selected", "OK", "Warning")
++        [System.Windows.MessageBox]::Show("请从下拉列表中选择 USB 驱动器。", "未选择驱动器", "OK", "Warning")
+         return
+     }
+ 
+@@ -3120,17 +3187,17 @@ function Invoke-WinUtilISOWriteUSB {
+     $sizeGB     = [math]::Round($targetDisk.Size / 1GB, 1)
+ 
+     $confirm = [System.Windows.MessageBox]::Show(
+-        "ALL data on Disk $diskNum ($($targetDisk.FriendlyName), $sizeGB GB) will be PERMANENTLY ERASED.`n`nAre you sure you want to continue?",
+-        "Confirm USB Erase", "YesNo", "Warning")
++        "磁盘 $diskNum（$($targetDisk.FriendlyName)，$sizeGB GB）上的所有数据都将被永久清除。`n`n确定要继续吗？",
++        "确认清除 USB", "YesNo", "Warning")
+ 
+     if ($confirm -ne "Yes") {
+-        Write-WinUtilISOLog "USB write cancelled by user."
++        Write-WinUtilISOLog "用户已取消写入 USB。"
+         return
+     }
+ 
+     $sync["WPFWin11ISOWriteUSBButton"].IsEnabled = $false
+     $sync["Win11ISOProcessRunning"] = $true
+-    Write-WinUtilISOLog "Starting USB write to Disk $diskNum..."
++    Write-WinUtilISOLog "正在开始向磁盘 $diskNum 写入 USB..."
+ 
+     $runspace = [Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+     $runspace.ApartmentState = "STA"
+@@ -3171,7 +3238,7 @@ function Invoke-WinUtilISOWriteUSB {
+         }
+ 
+         try {
+-            SetProgress "Formatting USB drive..." 10
++            SetProgress "正在格式化 USB 驱动器..." 10
+ 
+             # Phase 1: Clean disk via diskpart (retry once if the drive is not yet ready)
+             $dpFile1 = Join-Path $env:TEMP "winutil_diskpart_$(Get-Random).txt"
+@@ -3287,7 +3354,7 @@ function Invoke-WinUtilISOWriteUSB {
+                 throw "Insufficient free space on USB partition. Required: $contentSizeGB GB, available: $partitionFreeGB GB."
+             }
+ 
+-            SetProgress "Copying Windows 11 files to USB..." 45
++            SetProgress "正在把 Windows 11 文件复制到 USB..." 45
+ 
+             # Copy files; split install.wim if > 4 GB (FAT32 limit)
+             $installWim = Join-Path $contentsDir "sources\install.wim"
+@@ -3308,20 +3375,20 @@ function Invoke-WinUtilISOWriteUSB {
+                 & robocopy $contentsDir $usbDrive /E /NFL /NDL /NJH /NJS
+             }
+ 
+-            SetProgress "Finalising USB drive..." 90
+-            Log "Files copied to USB."
+-            SetProgress "USB write complete" 100
+-            Log "USB drive is ready for use."
++            SetProgress "正在完成 USB 驱动器设置..." 90
++            Log "文件已复制到 USB。"
++            SetProgress "USB 写入完成" 100
++            Log "USB 驱动器已可使用。"
+ 
+             $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+                 [System.Windows.MessageBox]::Show(
+-                    "USB drive created successfully!`n`nYou can now boot from this drive to install Windows 11.",
+-                    "USB Ready", "OK", "Info")
++                    "USB 驱动器创建成功！`n`n现在可以从该驱动器启动并安装 Windows 11。",
++                    "USB 已就绪", "OK", "Info")
+             })
+         } catch {
+-            Log "ERROR during USB write: $_"
++            Log "写入 USB 时出错：$_"
+             $sync["WPFWin11ISOStatusLog"].Dispatcher.Invoke([action]{
+-                [System.Windows.MessageBox]::Show("USB write failed:`n`n$_", "USB Write Error", "OK", "Error")
++                [System.Windows.MessageBox]::Show("USB 写入失败：`n`n$_", "USB 写入错误", "OK", "Error")
+             })
+         } finally {
+             Start-Sleep -Milliseconds 800
+@@ -3339,6 +3406,8 @@ function Invoke-WinUtilISOWriteUSB {
+     $script.BeginInvoke()
+ }
+ 
++# [功能说明] Invoke-WinUtilScript：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilScript {
+     <#
+ 
+@@ -3391,11 +3460,15 @@ function Invoke-WinUtilScript {
+ 
+ }
+ 
++# [功能说明] Invoke-WinUtilSponsors：脚本内部函数（用于组织代码与复用逻辑）。
++
+ Function Invoke-WinUtilSponsors {
+     $sponsors = ([regex]::Matches(([regex]::Match((Invoke-RestMethod https://github.com/sponsors/ChrisTitusTech),'(?s)(?<=Current sponsors).*?(?=Past sponsors)')).Value,'(?<=alt="@)[^"]+')).Value | Where-Object {$_ -ne "ChrisTitusTech"}
+     return $sponsors
+ }
+ 
++# [功能说明] Invoke-WinUtilSSHServer：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilSSHServer {
+     <#
+     .SYNOPSIS
+@@ -3457,6 +3530,8 @@ function Invoke-WinUtilSSHServer {
+     Write-Host "Add your public keys to this file -> $authorizedKeysPath"
+ }
+ 
++# [功能说明] Invoke-WinutilThemeChange：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinutilThemeChange {
+     <#
+     .SYNOPSIS
+@@ -3477,6 +3552,8 @@ function Invoke-WinutilThemeChange {
+         [string]$theme = "Auto"
+     )
+ 
++    # [功能说明] Set-WinutilTheme：设置系统/脚本状态或写入配置（可能涉及注册表、策略、UI 状态）。
++
+     function Set-WinutilTheme {
+         <#
+         .SYNOPSIS
+@@ -3494,6 +3571,8 @@ function Invoke-WinutilThemeChange {
+             [string]$currentTheme
+         )
+ 
++        # [功能说明] Set-ThemeResourceProperty：设置系统/脚本状态或写入配置（可能涉及注册表、策略、UI 状态）。
++
+         function Set-ThemeResourceProperty {
+             <#
+             .SYNOPSIS
+@@ -3618,6 +3697,8 @@ function Invoke-WinutilThemeChange {
+     $ThemeButton.Content = [string]$themeButtonIcon
+ }
+ 
++# [功能说明] Invoke-WinUtilTweaks：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilTweaks {
+     <#
+ 
+@@ -3704,6 +3785,8 @@ function Invoke-WinUtilTweaks {
+     Write-WinUtilLog -Component "Tweaks" -Message "$action tweak completed: $CheckBox"
+ }
+ 
++# [功能说明] Invoke-WinUtilUninstallPSProfile：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WinUtilUninstallPSProfile {
+ 
+     if (Test-Path ($Profile + ".bak")) {
+@@ -3715,6 +3798,8 @@ function Invoke-WinUtilUninstallPSProfile {
+     Write-Host "Successfully uninstalled CTT PowerShell Profile." -ForegroundColor Green
+ }
+ 
++# [功能说明] Remove-WinUtilAPPX：移除/清理相关内容（常见为注册表值、文件夹、Windows 组件/包等）。
++
+ function Remove-WinUtilAPPX {
+     <#
+ 
+@@ -3752,6 +3837,8 @@ function Remove-WinUtilAPPX {
+     Write-WinUtilLog -Component "AppX" -Message "AppX removal completed for package pattern: $Name"
+ }
+ 
++# [功能说明] Remove-WinUtilProvisionedAPPX：移除所选预配 AppX 软件包。
++
+ function Remove-WinUtilProvisionedAPPX {
+     <#
+ 
+@@ -3848,7 +3935,7 @@ function Reset-WPFCheckBoxes {
+ 
+     # Update Installs tab UI values
+     $count = $sync.SelectedApps.Count
+-    $sync.WPFselectedAppsButton.Content = "Selected Apps: $count"
++    $sync.WPFselectedAppsButton.Content = "已选应用：$count"
+     # On every change, remove all entries inside the Popup Menu. This is done, so we can keep the alphabetical order even if elements are selected in a random way
+     $sync.selectedAppsstackPanel.Children.Clear()
+     $sync.selectedApps | Foreach-Object { Add-SelectedAppsMenuItem -name $($sync.configs.applicationsHashtable.$_.Content) -key $_ }
+@@ -3869,6 +3956,8 @@ function Reset-WPFCheckBoxes {
+     }
+ }
+ 
++# [功能说明] Save-WinUtilFile：通过保存对话框写出配置或生成结果。
++
+ function Save-WinUtilFile {
+     <#
+     .SYNOPSIS
+@@ -3929,6 +4018,8 @@ function Save-WinUtilFile {
+     }
+ }
+ 
++# [功能说明] Set-WinUtilAppCategoryFilter：按所选分类筛选安装页面的软件列表。
++
+ function Set-WinUtilAppCategoryFilter {
+     <#
+         .SYNOPSIS
+@@ -3947,6 +4038,8 @@ function Set-WinUtilAppCategoryFilter {
+     Find-AppsByNameOrDescription -SearchString $Category -Category $Category
+ }
+ 
++# [功能说明] Set-WinUtilDNS：设置系统/脚本状态或写入配置（可能涉及注册表、策略、UI 状态）。
++
+ function Set-WinUtilDNS {
+     <#
+ 
+@@ -4028,10 +4121,10 @@ function Set-WinUtilDNS {
+                             Write-WinUtilLog -Component "DNS" -Message "Registering DoH template for $ip."
+                             Add-DnsClientDohServerAddress -ServerAddress $ip -DohTemplate $dns.DohTemplate -AllowFallbackToUdp $false -AutoUpgrade $true -ErrorAction Stop
+                         }
+-                        
++
+                         $leaf = if ($ip.Contains(':')) { 'Doh6' } else { 'Doh' }
+                         $regPath = "$interfaceParams\DohInterfaceSettings\$leaf\$ip"
+-                        
++
+                         if (-not (Test-Path $regPath)) {
+                             New-Item -Path $regPath -Force -ErrorAction Stop | Out-Null
+                         }
+@@ -4051,6 +4144,8 @@ function Set-WinUtilDNS {
+     }
+ }
+ 
++# [功能说明] Set-WinUtilRegistry：设置系统/脚本状态或写入配置（可能涉及注册表、策略、UI 状态）。
++
+ function Set-WinUtilRegistry {
+     <#
+ 
+@@ -4115,6 +4210,8 @@ function Set-WinUtilRegistry {
+     }
+ }
+ 
++# [功能说明] Set-WinUtilService：设置系统/脚本状态或写入配置（可能涉及注册表、策略、UI 状态）。
++
+ Function Set-WinUtilService {
+     <#
+ 
+@@ -4168,6 +4265,8 @@ Function Set-WinUtilService {
+ 
+ }
+ 
++# [功能说明] Set-WinUtilTaskbaritem：设置系统/脚本状态或写入配置（可能涉及注册表、策略、UI 状态）。
++
+ function Set-WinUtilTaskbaritem {
+     <#
+ 
+@@ -4300,6 +4399,8 @@ function Set-WinUtilTweaksProgressIndicator {
+     }
+ }
+ 
++# [功能说明] Show-CustomDialog：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Show-CustomDialog {
+     <#
+     .SYNOPSIS
+@@ -4594,6 +4695,8 @@ function Show-CustomDialog {
+     $dialog.ShowDialog()
+ }
+ 
++# [功能说明] Show-WinUtilMessage：显示统一样式的 WinUtil 提示消息。
++
+ function Show-WinUtilMessage {
+     <#
+     .SYNOPSIS
+@@ -4668,6 +4771,8 @@ function Start-WinUtilInstallAppRendering {
+     Complete-WinUtilInstallAppRendering
+ }
+ 
++# [功能说明] Test-WinUtilPackageManager：环境/输入检测（例如：镜像兼容性、依赖是否存在、路径是否有效）。
++
+ function Test-WinUtilPackageManager {
+     <#
+ 
+@@ -4733,6 +4838,8 @@ function Update-WinUtilSelections ($flatJson) {
+     }
+ }
+ 
++# [功能说明] Write-WinUtilLog：记录运行状态并更新可见日志。
++
+ function Write-WinUtilLog {
+     <#
+ 
+@@ -4815,6 +4922,8 @@ function Write-WinUtilLog {
+     }
+ }
+ 
++# [功能说明] Initialize-WPFUI：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Initialize-WPFUI {
+     [OutputType([void])]
+     param(
+@@ -4895,7 +5004,7 @@ function Initialize-WPFUI {
+                     "Install" {
+                         $newButton.Add_MouseEnter({
+                             $appObject = $sync.configs.applicationsHashtable.$($sync.appPopupSelectedApp)
+-                            $this.ToolTip = "Install or Upgrade $($appObject.content)"
++                            $this.ToolTip = "安装或升级 $($appObject.content)"
+                         })
+                         $newButton.Add_Click({
+                             $appObject = $sync.configs.applicationsHashtable.$($sync.appPopupSelectedApp)
+@@ -4905,7 +5014,7 @@ function Initialize-WPFUI {
+                     "Uninstall" {
+                         $newButton.Add_MouseEnter({
+                             $appObject = $sync.configs.applicationsHashtable.$($sync.appPopupSelectedApp)
+-                            $this.ToolTip = "Uninstall $($appObject.content)"
++                            $this.ToolTip = "卸载 $($appObject.content)"
+                         })
+                         $newButton.Add_Click({
+                             $appObject = $sync.configs.applicationsHashtable.$($sync.appPopupSelectedApp)
+@@ -4915,7 +5024,7 @@ function Initialize-WPFUI {
+                     "Info" {
+                         $newButton.Add_MouseEnter({
+                             $appObject = $sync.configs.applicationsHashtable.$($sync.appPopupSelectedApp)
+-                            $this.ToolTip = "Open the application's website in your default browser`n$($appObject.link)"
++                            $this.ToolTip = "用默认浏览器打开应用官网`n$($appObject.link)"
+                         })
+                         $newButton.Add_Click({
+                             $appObject = $sync.configs.applicationsHashtable.$($sync.appPopupSelectedApp)
+@@ -4977,14 +5086,16 @@ function Invoke-WinUtilAutoRun {
+     Write-Host "Done."
+ }
+ 
++# [功能说明] Invoke-WPFAppxInstall：安装 AppX 页面中选中的软件包。
++
+ function Invoke-WPFAppxInstall {
+     if ($sync.ProcessRunning) {
+-        Show-WinUtilMessage -Message "An AppX process is currently running." -Title "WinUtil" -Button "OK" -Icon "Warning"
++        Show-WinUtilMessage -Message "已有 AppX 任务正在运行。" -Title "WinUtil" -Button "OK" -Icon "Warning"
+         return
+     }
+ 
+     if ($null -eq $sync.selectedAppx -or $sync.selectedAppx.Count -eq 0) {
+-        Show-WinUtilMessage -Message "No AppX Package selected" -Title "Error" -Button "OK" -Icon "Error"
++        Show-WinUtilMessage -Message "未选择 AppX 软件包" -Title "错误" -Button "OK" -Icon "Error"
+         return
+     }
+ 
+@@ -5001,7 +5112,7 @@ function Invoke-WPFAppxInstall {
+         try {
+             Write-WinUtilLog -Component "AppX" -Message "Starting AppX install for $totalPackages selected package(s)."
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Preparing AppX install (0/$totalPackages)" -Percent 0
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在准备安装 AppX（0/$totalPackages）" -Percent 0
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "Normal" -value 0.01 -overlay "logo" }
+             }
+ 
+@@ -5012,14 +5123,14 @@ function Invoke-WPFAppxInstall {
+                 $startPercent = [int](($index / $totalPackages) * 100)
+ 
+                 if ($hasUI) {
+-                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Installing $($app.Content) ($position/$totalPackages)" -Percent $startPercent
++                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在安装 $($app.Content)（$position/$totalPackages）" -Percent $startPercent
+                 }
+                 Write-Host "Installing $($app.Content)"
+                 Install-WinUtilAPPX -Name $app.PackageId -StoreId $app.StoreId
+ 
+                 $completedPercent = [int](($position / $totalPackages) * 100)
+                 if ($hasUI) {
+-                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Installed $($app.Content) ($position/$totalPackages)" -Percent $completedPercent
++                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "已安装 $($app.Content)（$position/$totalPackages）" -Percent $completedPercent
+                     Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -value ($completedPercent / 100) }
+                 }
+             }
+@@ -5029,14 +5140,14 @@ function Invoke-WPFAppxInstall {
+             Write-Host "================================="
+             Write-WinUtilLog -Component "AppX" -Message "AppX install finished."
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX install finished" -Percent 100
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX 安装完成" -Percent 100
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "None" -overlay "checkmark" }
+             }
+         }
+         catch {
+             Write-WinUtilLog -Level "ERROR" -Component "AppX" -Message "AppX install failed: $($_.Exception.Message)"
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX install failed" -Percent 100
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX 安装失败" -Percent 100
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "Error" -overlay "warning" }
+             }
+         }
+@@ -5046,14 +5157,16 @@ function Invoke-WPFAppxInstall {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFAppxRemoval：移除 AppX 页面中选中的软件包。
++
+ function Invoke-WPFAppxRemoval {
+     if ($sync.ProcessRunning) {
+-        Show-WinUtilMessage -Message "An AppX process is currently running." -Title "WinUtil" -Button "OK" -Icon "Warning"
++        Show-WinUtilMessage -Message "已有 AppX 任务正在运行。" -Title "WinUtil" -Button "OK" -Icon "Warning"
+         return
+     }
+ 
+     if ($null -eq $sync.selectedAppx -or $sync.selectedAppx.Count -eq 0) {
+-        Show-WinUtilMessage -Message "No AppX Package selected" -Title "Error" -Button "OK" -Icon "Error"
++        Show-WinUtilMessage -Message "未选择 AppX 软件包" -Title "错误" -Button "OK" -Icon "Error"
+         return
+     }
+ 
+@@ -5071,7 +5184,7 @@ function Invoke-WPFAppxRemoval {
+         try {
+             Write-WinUtilLog -Component "AppX" -Message "Starting AppX removal for $totalPackages selected package(s)."
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Preparing AppX removal (0/$totalPackages)" -Percent 0
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在准备移除 AppX（0/$totalPackages）" -Percent 0
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "Normal" -value 0.01 -overlay "logo" }
+             }
+ 
+@@ -5081,7 +5194,7 @@ function Invoke-WPFAppxRemoval {
+                 $position = $index + 1
+                 $startPercent = [int](($index / $totalPackages) * 90)
+                 if ($hasUI) {
+-                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Removing $($app.Content) ($position/$totalPackages)" -Percent $startPercent
++                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在移除 $($app.Content)（$position/$totalPackages）" -Percent $startPercent
+                 }
+ 
+                 if ($key -eq "WPFAppxMicrosoft_XboxGamingOverlay") {
+@@ -5112,14 +5225,14 @@ function Invoke-WPFAppxRemoval {
+ 
+                 $completedPercent = [int](($position / $totalPackages) * 90)
+                 if ($hasUI) {
+-                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Removed $($app.Content) ($position/$totalPackages)" -Percent $completedPercent
++                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "已移除 $($app.Content)（$position/$totalPackages）" -Percent $completedPercent
+                     Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -value ($completedPercent / 100) }
+                 }
+             }
+ 
+             if ($packageList.Count -gt 0) {
+                 if ($hasUI) {
+-                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Removing provisioned AppX packages" -Percent 90
++                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在移除预配的 AppX 软件包" -Percent 90
+                 }
+                 Remove-WinUtilProvisionedAPPX -PackageList $packageList.ToArray()
+             }
+@@ -5129,14 +5242,14 @@ function Invoke-WPFAppxRemoval {
+             Write-Host "================================="
+             Write-WinUtilLog -Component "AppX" -Message "AppX removal finished."
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX removal finished" -Percent 100
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX 移除完成" -Percent 100
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "None" -overlay "checkmark" }
+             }
+         }
+         catch {
+             Write-WinUtilLog -Level "ERROR" -Component "AppX" -Message "AppX removal failed: $($_.Exception.Message)"
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX removal failed" -Percent 100
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "AppX 移除失败" -Percent 100
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "Error" -overlay "warning" }
+             }
+         }
+@@ -5147,6 +5260,8 @@ function Invoke-WPFAppxRemoval {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFButton：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFButton {
+ 
+     <#
+@@ -5246,6 +5361,8 @@ function Invoke-WPFButton {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFFeatureInstall：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFFeatureInstall {
+     <#
+ 
+@@ -5255,7 +5372,7 @@ function Invoke-WPFFeatureInstall {
+     #>
+ 
+     if($sync.ProcessRunning) {
+-        $msg = "[Invoke-WPFFeatureInstall] Install process is currently running."
++        $msg = "功能安装任务正在运行。"
+         [System.Windows.MessageBox]::Show($msg, "Winutil", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+         return
+     }
+@@ -5287,6 +5404,8 @@ function Invoke-WPFFeatureInstall {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFFixesNetwork：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFFixesNetwork {
+     netsh winsock reset
+     netsh int ip reset
+@@ -5314,6 +5433,8 @@ function Invoke-WPFFixesNTPPool {
+     Write-Host "================================="
+ }
+ 
++# [功能说明] Invoke-WPFFixesUpdate：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFFixesUpdate {
+ 
+     <#
+@@ -5518,8 +5639,8 @@ function Invoke-WPFFixesUpdate {
+     Set-WinUtilTaskbaritem -state "None" -overlay "checkmark"
+ 
+     $ButtonType = [System.Windows.MessageBoxButton]::OK
+-    $MessageboxTitle = "Reset Windows Update "
+-    $Messageboxbody = ("Stock settings loaded.`n Please reboot your computer")
++    $MessageboxTitle = "重置 Windows 更新"
++    $Messageboxbody = ("默认设置已加载。`n请重启电脑。")
+     $MessageIcon = [System.Windows.MessageBoxImage]::Information
+ 
+     [System.Windows.MessageBox]::Show($Messageboxbody, $MessageboxTitle, $ButtonType, $MessageIcon)
+@@ -5541,6 +5662,8 @@ function Invoke-WPFFixesUpdate {
+     Write-Progress -Id 10 -Activity "Forcing discovery" -Completed
+ }
+ 
++# [功能说明] Invoke-WPFFixesWinget：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFFixesWinget {
+ 
+     <#
+@@ -5565,6 +5688,8 @@ function Invoke-WPFFixesWinget {
+ 
+ }
+ 
++# [功能说明] Invoke-WPFGetInstalled：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFGetInstalled {
+     <#
+     .SYNOPSIS
+@@ -5576,7 +5701,7 @@ function Invoke-WPFGetInstalled {
+     #>
+     param($checkbox)
+     if ($sync.ProcessRunning) {
+-        $msg = "[Invoke-WPFGetInstalled] Install process is currently running."
++        $msg = "安装任务正在运行，暂时无法获取已安装项目。"
+         [System.Windows.MessageBox]::Show($msg, "Winutil", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+         return
+     }
+@@ -5655,6 +5780,8 @@ function Invoke-WPFGetInstalled {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFImpex：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFImpex {
+     <#
+ 
+@@ -5676,6 +5803,8 @@ function Invoke-WPFImpex {
+         $Config = $null
+     )
+ 
++    # [功能说明] ConfigDialog：脚本内部函数（用于组织代码与复用逻辑）。
++
+     function ConfigDialog {
+         if (!$Config) {
+             switch ($type) {
+@@ -5704,8 +5833,8 @@ function Invoke-WPFImpex {
+                     $allConfs = ($sync.selectedApps + $sync.selectedTweaks + $sync.selectedToggles + $sync.selectedFeatures + $sync.selectedAppx) | ForEach-Object { [string]$_ }
+                     if (-not $allConfs) {
+                         [System.Windows.MessageBox]::Show(
+-                            "No settings are selected to export. Please select at least one app, tweak, toggle, feature, or AppX package before exporting.",
+-                            "Nothing to Export", "OK", "Warning")
++                            "没有可导出的设置。请至少选择一个应用、优化、开关、功能或 AppX 软件包。",
++                            "没有可导出的内容", "OK", "Warning")
+                         return
+                     }
+                     $jsonFile = $allConfs | ConvertTo-Json
+@@ -5736,8 +5865,8 @@ function Invoke-WPFImpex {
+ 
+                     if (-not $flattenedJson) {
+                         [System.Windows.MessageBox]::Show(
+-                            "The selected file contains no settings to import. No changes have been made.",
+-                            "Empty Configuration", "OK", "Warning")
++                            "所选文件不包含可导入的设置，未进行任何更改。",
++                            "配置为空", "OK", "Warning")
+                         return
+                     }
+ 
+@@ -5762,6 +5891,8 @@ function Invoke-WPFImpex {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFInstall：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFInstall {
+     <#
+     .SYNOPSIS
+@@ -5774,13 +5905,13 @@ function Invoke-WPFInstall {
+ 
+ 
+     if($sync.ProcessRunning) {
+-        $msg = "[Invoke-WPFInstall] An Install process is currently running."
++        $msg = "已有安装任务正在运行。"
+         Show-WinUtilMessage -Message $msg -Title "WinUtil" -Button "OK" -Icon "Warning"
+         return
+     }
+ 
+     if ($PackagesToInstall.Count -eq 0) {
+-        $WarningMsg = "Please select the program(s) to install or upgrade."
++        $WarningMsg = "请选择要安装或升级的程序。"
+         Show-WinUtilMessage -Message $WarningMsg -Title "WinUtil" -Button "OK" -Icon "Warning"
+         return
+     }
+@@ -5877,6 +6008,8 @@ function Invoke-WPFInstall {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFInstallUpgrade：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFInstallUpgrade {
+     if ($sync.ChocoRadioButton.IsChecked) {
+         Install-WinUtilChoco # Ensure Chocolatey is installed before upgrading
+@@ -5899,9 +6032,11 @@ function Invoke-WPFInstallUpgrade {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFOOSU：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFOOSU {
+     if ($sync.ProcessRunning) {
+-        Show-WinUtilMessage -Message "Another process is currently running." -Title "WinUtil" -Button "OK" -Icon "Warning"
++        Show-WinUtilMessage -Message "已有其他任务正在运行。" -Title "WinUtil" -Button "OK" -Icon "Warning"
+         return
+     }
+ 
+@@ -5950,11 +6085,15 @@ function Invoke-WPFOOSU {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFPanelAutologin：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFPanelAutologin {
+     Invoke-WebRequest -Uri https://live.sysinternals.com/Autologon.exe -OutFile "$winutildir\autologin.exe"
+     Start-Process -FilePath "$winutildir\autologin.exe" -ArgumentList /accepteula
+ }
+ 
++# [功能说明] Invoke-WPFPopup：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFPopup {
+     param (
+         [ValidateSet("Show", "Hide", "Toggle")]
+@@ -6010,6 +6149,8 @@ function Invoke-WPFPopup {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFPresets：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFPresets {
+     <#
+ 
+@@ -6062,6 +6203,8 @@ function Invoke-WPFPresets {
+     Reset-WPFCheckBoxes -doToggles $false -checkboxfilterpattern $checkboxfilterpattern
+ }
+ 
++# [功能说明] Invoke-WPFRunspace：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFRunspace {
+ 
+     <#
+@@ -6181,7 +6324,7 @@ function Invoke-WPFSelectedCheckboxesUpdate ($type, $checkboxName) {
+     }
+ 
+     if ($listName -eq "selectedApps" -and $selectionChanged) {
+-        $sync.WPFselectedAppsButton.Content = "Selected Apps: $($sync.selectedApps.Count)"
++        $sync.WPFselectedAppsButton.Content = "已选应用：$($sync.selectedApps.Count)"
+         $sync.selectedAppsstackPanel.Children.Clear()
+         $sync.selectedApps | Sort-Object | ForEach-Object {
+             Add-SelectedAppsMenuItem -name $sync.configs.applicationsHashtable.$_.Content -key $_
+@@ -6189,6 +6332,8 @@ function Invoke-WPFSelectedCheckboxesUpdate ($type, $checkboxName) {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFSSHServer：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFSSHServer {
+     <#
+ 
+@@ -6207,6 +6352,8 @@ function Invoke-WPFSSHServer {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFSystemRepair：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFSystemRepair {
+     <#
+     .SYNOPSIS
+@@ -6227,6 +6374,8 @@ function Invoke-WPFSystemRepair {
+     Set-WinUtilTaskbaritem -state "None" -overlay "checkmark"
+ }
+ 
++# [功能说明] Invoke-WPFTab：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFTab {
+ 
+     <#
+@@ -6342,6 +6491,8 @@ function Invoke-WPFToggleAllCategories {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFtweaksbutton：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFtweaksbutton {
+   <#
+ 
+@@ -6351,7 +6502,7 @@ function Invoke-WPFtweaksbutton {
+   #>
+ 
+   if($sync.ProcessRunning) {
+-    $msg = "[Invoke-WPFtweaksbutton] Install process is currently running."
++    $msg = "已有任务正在运行，暂时无法执行优化。"
+     [System.Windows.MessageBox]::Show($msg, "Winutil", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+     return
+   }
+@@ -6369,7 +6520,7 @@ function Invoke-WPFtweaksbutton {
+   Write-WinUtilLog -Component "Tweaks" -Message "Tweaks requested: $(@($Tweaks).Count) selected tweak(s), DNS provider: $dnsProvider"
+ 
+   if ($tweaks.count -eq 0 -and $dnsProvider -eq "Default") {
+-    $msg = "Please check the tweaks you wish to perform."
++    $msg = "请勾选要执行的优化。"
+     [System.Windows.MessageBox]::Show($msg, "Winutil", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+     return
+   }
+@@ -6435,6 +6586,8 @@ function Invoke-WPFtweaksbutton {
+   }
+ }
+ 
++# [功能说明] Invoke-WPFUIElements：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFUIElements {
+     <#
+     .SYNOPSIS
+@@ -6897,16 +7050,20 @@ function Invoke-WPFUIThread ($ScriptBlock) {
+     $sync.form.Dispatcher.Invoke([action]$ScriptBlock)
+ }
+ 
++# [功能说明] Invoke-WPFUltimatePerformance：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFUltimatePerformance ([switch]$Enable) {
+     if ($Enable) {
+         powercfg /setactive (powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Select-String -Pattern '[A-Fa-f0-9-]{36}').Matches.Value
+-        [System.Windows.MessageBox]::Show("Ultimate Power Plan plan installed and activated.","Success","OK","Information")
++        [System.Windows.MessageBox]::Show("“卓越性能”电源计划已安装并启用。","成功","OK","Information")
+     } else {
+         powercfg /restoredefaultschemes
+-        [System.Windows.MessageBox]::Show("Power Plan was reset to defaults.","Success","OK","Information")
++        [System.Windows.MessageBox]::Show("电源计划已恢复默认设置。","成功","OK","Information")
+     }
+ }
+ 
++# [功能说明] Invoke-WPFundoall：回滚/撤销之前应用的更改（按所选项恢复相关设置）。
++
+ function Invoke-WPFundoall {
+     <#
+ 
+@@ -6916,7 +7073,7 @@ function Invoke-WPFundoall {
+     #>
+ 
+     if($sync.ProcessRunning) {
+-        $msg = "[Invoke-WPFundoall] Install process is currently running."
++        $msg = "已有任务正在运行，暂时无法撤销优化。"
+         [System.Windows.MessageBox]::Show($msg, "Winutil", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+         return
+     }
+@@ -6924,7 +7081,7 @@ function Invoke-WPFundoall {
+     $tweaks = $sync.selectedTweaks
+ 
+     if ($tweaks.count -eq 0) {
+-        $msg = "Please check the tweaks you wish to undo."
++        $msg = "请勾选要撤销的优化。"
+         [System.Windows.MessageBox]::Show($msg, "Winutil", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+         return
+     }
+@@ -6942,12 +7099,12 @@ function Invoke-WPFundoall {
+ 
+ 
+         for ($i = 0; $i -lt $tweaks.Count; $i++) {
+-            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Undoing $($tweaks[$i]) ($($i + 1)/$($tweaks.Count))" -Percent ($i / $tweaks.Count * 100)
++            Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在撤销 $($tweaks[$i])（$($i + 1)/$($tweaks.Count)）" -Percent ($i / $tweaks.Count * 100)
+             Invoke-WinUtiltweaks $tweaks[$i] -undo $true
+             Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -value ($i/$tweaks.Count) }
+         }
+ 
+-        Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Undo Tweaks Finished" -Percent 100
++        Set-WinUtilTweaksProgressIndicator -Visible $true -Label "撤销优化完成" -Percent 100
+         $sync.ProcessRunning = $false
+         Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "None" -overlay "checkmark" }
+         Write-Host "=================================="
+@@ -6958,6 +7115,8 @@ function Invoke-WPFundoall {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFUnInstall：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFUnInstall {
+     param(
+         [Parameter(Mandatory=$false)]
+@@ -6970,20 +7129,20 @@ function Invoke-WPFUnInstall {
+     #>
+ 
+     if($sync.ProcessRunning) {
+-        $msg = "[Invoke-WPFUnInstall] Install process is currently running"
++        $msg = "已有安装或卸载任务正在运行。"
+         Show-WinUtilMessage -Message $msg -Title "WinUtil" -Button "OK" -Icon "Warning"
+         return
+     }
+ 
+     if ($PackagesToUninstall.Count -eq 0) {
+-        $WarningMsg = "Please select the program(s) to uninstall"
++        $WarningMsg = "请选择要卸载的程序。"
+         Show-WinUtilMessage -Message $WarningMsg -Title "WinUtil" -Button "OK" -Icon "Warning"
+         return
+     }
+ 
+     $ButtonType = "YesNo"
+-    $MessageboxTitle = "Are you sure?"
+-    $Messageboxbody = ("This will uninstall the following applications: `n $($PackagesToUninstall | Select-Object Name, Description| Out-String)")
++    $MessageboxTitle = "确定要继续吗？"
++    $Messageboxbody = ("将卸载以下应用：`n $($PackagesToUninstall | Select-Object Name, Description| Out-String)")
+     $MessageIcon = "Information"
+ 
+     $confirm = Show-WinUtilMessage -Message $Messageboxbody -Title $MessageboxTitle -Button $ButtonType -Icon $MessageIcon
+@@ -7028,14 +7187,14 @@ function Invoke-WPFUnInstall {
+                     $position = $completedPackages + 1
+                     $startPercent = [int](($completedPackages / $totalPackages) * 100)
+                     if ($hasUI) {
+-                        Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Uninstalling $program ($position/$totalPackages)" -Percent $startPercent
++                        Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在卸载 $program（$position/$totalPackages）" -Percent $startPercent
+                     }
+ 
+                     Install-WinUtilProgramWinget -Action Uninstall -Programs @($program)
+                     $completedPackages++
+                     $completedPercent = [int](($completedPackages / $totalPackages) * 100)
+                     if ($hasUI) {
+-                        Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Uninstalled $program ($completedPackages/$totalPackages)" -Percent $completedPercent
++                        Set-WinUtilTweaksProgressIndicator -Visible $true -Label "已卸载 $program（$completedPackages/$totalPackages）" -Percent $completedPercent
+                         Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -value ($completedPercent / 100) }
+                     }
+                 }
+@@ -7044,14 +7203,14 @@ function Invoke-WPFUnInstall {
+                 $position = $completedPackages + 1
+                 $startPercent = [int](($completedPackages / $totalPackages) * 100)
+                 if ($hasUI) {
+-                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Uninstalling Chocolatey packages ($position/$totalPackages)" -Percent $startPercent
++                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "正在卸载 Chocolatey 软件包（$position/$totalPackages）" -Percent $startPercent
+                 }
+ 
+                 Install-WinUtilProgramChoco -Action Uninstall -Programs $packagesChoco
+                 $completedPackages += @($packagesChoco).Count
+                 $completedPercent = [int](($completedPackages / $totalPackages) * 100)
+                 if ($hasUI) {
+-                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "Uninstalled Chocolatey packages ($completedPackages/$totalPackages)" -Percent $completedPercent
++                    Set-WinUtilTweaksProgressIndicator -Visible $true -Label "已卸载 Chocolatey 软件包（$completedPackages/$totalPackages）" -Percent $completedPercent
+                     Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -value ($completedPercent / 100) }
+                 }
+             }
+@@ -7060,7 +7219,7 @@ function Invoke-WPFUnInstall {
+             Write-Host "==========================================="
+             Write-WinUtilLog -Component "Uninstall" -Message "Uninstall workflow completed."
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "App uninstall finished" -Percent 100
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "应用卸载完成" -Percent 100
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "None" -overlay "checkmark" }
+             }
+         } catch {
+@@ -7069,7 +7228,7 @@ function Invoke-WPFUnInstall {
+             Write-Host "==========================================="
+             Write-WinUtilLog -Level "ERROR" -Component "Uninstall" -Message "Uninstall workflow failed: $($_.Exception.Message)"
+             if ($hasUI) {
+-                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "App uninstall failed" -Percent 100
++                Set-WinUtilTweaksProgressIndicator -Visible $true -Label "应用卸载失败" -Percent 100
+                 Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "Error" -overlay "warning" }
+             }
+         } finally {
+@@ -7086,6 +7245,8 @@ function Invoke-WPFUnInstall {
+     }
+ }
+ 
++# [功能说明] Invoke-WPFUpdatesdefault：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFUpdatesdefault {
+     <#
+ 
+@@ -7178,6 +7339,8 @@ function Invoke-WPFUpdatesdefault {
+     Write-WinUtilLog -Component "Updates" -Message "Windows Update default workflow completed. Restart required."
+ }
+ 
++# [功能说明] Invoke-WPFUpdatesdisable：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFUpdatesdisable {
+     <#
+ 
+@@ -7189,8 +7352,8 @@ function Invoke-WPFUpdatesdisable {
+ 
+     #>
+     $confirmation = Show-WinUtilMessage `
+-        -Message "Disabling Windows Update stops update services, disables scheduled tasks, and clears downloaded update files. Security updates will not be installed until defaults are restored. Continue?" `
+-        -Title "Disable Windows Update?" `
++        -Message "禁用 Windows 更新会停止更新服务、禁用计划任务并清理已下载的更新文件。恢复默认设置前不会安装安全更新。是否继续？" `
++        -Title "禁用 Windows 更新？" `
+         -Button "YesNo" `
+         -Icon "Warning"
+ 
+@@ -7245,6 +7408,8 @@ function Invoke-WPFUpdatesdisable {
+     Write-WinUtilLog -Component "Updates" -Message "Windows Update disable workflow completed. Restart required."
+ }
+ 
++# [功能说明] Invoke-WPFUpdatessecurity：脚本内部函数（用于组织代码与复用逻辑）。
++
+ function Invoke-WPFUpdatessecurity {
+     <#
+ 
+@@ -9270,85 +9435,85 @@ $sync.configs.applications = @'
+ $sync.configs.appnavigation = @'
+ {
+   "WPFInstall": {
+-    "Content": "Install/Upgrade Applications",
+-    "Category": "____Actions",
++    "Content": "安装/升级所选应用",
++    "Category": "____操作",
+     "Type": "Button",
+     "Order": "1",
+-    "Description": "Install or upgrade the selected applications"
++    "Description": "安装或升级你勾选的应用"
+   },
+   "WPFUninstall": {
+-    "Content": "Uninstall Applications",
+-    "Category": "____Actions",
++    "Content": "卸载所选应用",
++    "Category": "____操作",
+     "Type": "Button",
+     "Order": "2",
+-    "Description": "Uninstall the selected applications"
++    "Description": "卸载你勾选的应用"
+   },
+   "WPFInstallUpgrade": {
+-    "Content": "Upgrade all Applications",
+-    "Category": "____Actions",
++    "Content": "升级全部应用",
++    "Category": "____操作",
+     "Type": "Button",
+     "Order": "3",
+-    "Description": "Upgrade all applications to the latest version"
++    "Description": "将已安装应用升级到最新版本"
+   },
+   "WingetRadioButton": {
+     "Content": "WinGet",
+-    "Category": "__Package Manager",
++    "Category": "__包管理器",
+     "Type": "RadioButton",
+     "GroupName": "PackageManagerGroup",
+     "Checked": true,
+     "Order": "1",
+-    "Description": "Use WinGet for package management"
++    "Description": "使用 Winget 作为包管理器"
+   },
+   "ChocoRadioButton": {
+     "Content": "Chocolatey",
+-    "Category": "__Package Manager",
++    "Category": "__包管理器",
+     "Type": "RadioButton",
+     "GroupName": "PackageManagerGroup",
+     "Checked": false,
+     "Order": "2",
+-    "Description": "Use Chocolatey for package management"
++    "Description": "使用 Chocolatey 作为包管理器"
+   },
+   "WPFCollapseAllCategories": {
+-    "Content": "Collapse All Categories",
+-    "Category": "__Selection",
++    "Content": "收起全部分类",
++    "Category": "__选择",
+     "Type": "Button",
+     "Order": "1",
+-    "Description": "Collapse all application categories"
++    "Description": "收起所有应用分类"
+   },
+   "WPFExpandAllCategories": {
+-    "Content": "Expand All Categories",
+-    "Category": "__Selection",
++    "Content": "展开全部分类",
++    "Category": "__选择",
+     "Type": "Button",
+     "Order": "2",
+-    "Description": "Expand all application categories"
++    "Description": "展开所有应用分类"
+   },
+   "WPFClearInstallSelection": {
+-    "Content": "Clear Selection",
+-    "Category": "__Selection",
++    "Content": "清空选择",
++    "Category": "__选择",
+     "Type": "Button",
+     "Order": "3",
+-    "Description": "Clear the selection of applications"
++    "Description": "清空已选择的应用"
+   },
+   "WPFGetInstalled": {
+-    "Content": "Show Installed Apps",
+-    "Category": "__Selection",
++    "Content": "获取已安装",
++    "Category": "__选择",
+     "Type": "Button",
+     "Order": "4",
+-    "Description": "Show installed applications"
++    "Description": "显示已安装的应用"
+   },
+   "WPFselectedAppsButton": {
+-    "Content": "Selected Apps: 0",
+-    "Category": "__Selection",
++    "Content": "已选应用：0",
++    "Category": "__选择",
+     "Type": "Button",
+     "Order": "5",
+-    "Description": "Show the selected applications"
++    "Description": "显示已选择的应用"
+   },
+   "WPFInstallFOSSInfo": {
+-    "Content": "Free and Open Source Software",
+-    "Category": "__Selection",
++    "Content": "自由与开源软件",
++    "Category": "__选择",
+     "Type": "Note",
+     "Order": "0",
+-    "Description": "Information about the #FOSS label on application entries"
++    "Description": "说明应用条目上的 #FOSS 标签"
+   }
+ }
+ '@ | ConvertFrom-Json
+@@ -9680,21 +9845,23 @@ $sync.configs.dns = @'
+ $sync.configs.feature = @'
+ {
+   "WPFFeaturesdotnet": {
+-    "Content": ".NET Framework (Versions 2, 3, 4) - Enable",
+-    "Description": ".NET and .NET Framework is a developer platform made up of tools, programming languages, and libraries for building many different types of applications.",
+-    "category": "Features",
++    "Content": "安装/启用 .NET Framework（2/3/4）",
++    "Description": "启用/安装 Windows 的 .NET Framework 功能组件（常用于运行旧软件/开发环境）。",
++    "category": "功能组件",
+     "panel": "1",
+     "feature": [
+       "NetFx4-AdvSrvs",
+       "NetFx3"
+     ],
+-    "InvokeScript": [],
++    "InvokeScript": [
++
++    ],
+     "link": "https://winutil.christitus.com/code-reference/features/features/dotnet"
+   },
+   "WPFFixesNTPPool": {
+-    "Content": "NTP Server - Enable",
+-    "Description": "Replaces the default Windows NTP server (time.windows.com) with pool.ntp.org for improved time synchronization accuracy and reliability.",
+-    "category": "Fixes",
++    "Content": "配置 NTP 时间服务器",
++    "Description": "将 Windows 默认时间服务器（time.windows.com）替换为 pool.ntp.org，以提高校时准确性和稳定性。",
++    "category": "修复",
+     "panel": "1",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9702,9 +9869,9 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/fixes/ntppool"
+   },
+   "WPFFeatureshyperv": {
+-    "Content": "Hyper-V - Enable",
+-    "Description": "Hyper-V is a hardware virtualization product developed by Microsoft that allows users to create and manage virtual machines.",
+-    "category": "Features",
++    "Content": "启用 Hyper‑V 虚拟化",
++    "Description": "启用 Hyper‑V 及其管理工具，用于创建与管理虚拟机（需要硬件虚拟化支持）。",
++    "category": "功能组件",
+     "panel": "1",
+     "feature": [
+       "Microsoft-Hyper-V-All"
+@@ -9712,9 +9879,9 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/features/hyperv"
+   },
+   "WPFFeatureslegacymedia": {
+-    "Content": "Legacy Media Components (WMP, DirectPlay) - Enable",
+-    "Description": "Enables legacy programs from previous versions of Windows.",
+-    "category": "Features",
++    "Content": "启用旧媒体组件（WMP/DirectPlay）",
++    "Description": "启用旧版媒体相关组件（Windows Media Player、DirectPlay 等），用于兼容老游戏/老播放器。",
++    "category": "功能组件",
+     "panel": "1",
+     "feature": [
+       "WindowsMediaPlayer",
+@@ -9722,25 +9889,29 @@ $sync.configs.feature = @'
+       "DirectPlay",
+       "LegacyComponents"
+     ],
+-    "InvokeScript": [],
++    "InvokeScript": [
++
++    ],
+     "link": "https://winutil.christitus.com/code-reference/features/features/legacymedia"
+   },
+   "WPFFeaturewsl": {
+-    "Content": "Windows Subsystem for Linux (WSL) - Enable",
+-    "Description": "Windows Subsystem for Linux is an optional feature of Windows that allows Linux programs to run natively on Windows without the need for a separate virtual machine or dual booting.",
+-    "category": "Features",
++    "Content": "启用 WSL（Linux 子系统）",
++    "Description": "启用 WSL，让你在 Windows 上运行 Linux 发行版（开发/命令行工具常用）。",
++    "category": "功能组件",
+     "panel": "1",
+     "feature": [
+       "VirtualMachinePlatform",
+       "Microsoft-Windows-Subsystem-Linux"
+     ],
+-    "InvokeScript": [],
++    "InvokeScript": [
++
++    ],
+     "link": "https://winutil.christitus.com/code-reference/features/features/wsl"
+   },
+   "WPFFeaturenfs": {
+-    "Content": "Network File System (NFS) - Enable",
+-    "Description": "Network File System (NFS) is a mechanism for storing files on a network.",
+-    "category": "Features",
++    "Content": "启用 NFS（网络文件系统）",
++    "Description": "启用 NFS 客户端/相关组件，用于挂载 NFS 共享（多见于 NAS/Unix/Linux 环境）。",
++    "category": "功能组件",
+     "panel": "1",
+     "feature": [
+       "ServicesForNFS-ClientOnly",
+@@ -9757,42 +9928,48 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/features/nfs"
+   },
+   "WPFFeatureRegBackup": {
+-    "Content": "Registry Backup (Daily Task 12:30am) - Enable",
+-    "Description": "Enables daily registry backup, previously disabled by Microsoft in Windows 10 1803.",
+-    "category": "Features",
++    "Content": "启用每日注册表备份任务（00:30）",
++    "Description": "创建/启用每日注册表自动备份计划任务（默认 00:30），便于系统故障时回滚。",
++    "category": "功能组件",
+     "panel": "1",
+-    "feature": [],
++    "feature": [
++
++    ],
+     "InvokeScript": [
+       "\r\n      New-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Configuration Manager' -Name 'EnablePeriodicBackup' -Type DWord -Value 1 -Force\r\n      New-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Configuration Manager' -Name 'BackupCount' -Type DWord -Value 2 -Force\r\n      $action = New-ScheduledTaskAction -Execute 'schtasks' -Argument '/run /i /tn \"\\Microsoft\\Windows\\Registry\\RegIdleBackup\"'\r\n      $trigger = New-ScheduledTaskTrigger -Daily -At 00:30\r\n      Register-ScheduledTask -Action $action -Trigger $trigger -TaskName 'AutoRegBackup' -Description 'Create System Registry Backups' -User 'System'\r\n      "
+     ],
+     "link": "https://winutil.christitus.com/code-reference/features/features/regbackup"
+   },
+   "WPFFeatureEnableLegacyRecovery": {
+-    "Content": "Legacy F8 Boot Recovery - Enable",
+-    "Description": "Enables Advanced Boot Options screen that lets you start Windows in advanced troubleshooting modes.",
+-    "category": "Features",
++    "Content": "启用传统 F8 启动恢复菜单",
++    "Description": "启用传统“按 F8 进入高级启动选项”的恢复菜单（对排障更方便）。",
++    "category": "功能组件",
+     "panel": "1",
+-    "feature": [],
++    "feature": [
++
++    ],
+     "InvokeScript": [
+       "bcdedit /set bootmenupolicy legacy"
+     ],
+     "link": "https://winutil.christitus.com/code-reference/features/features/enablelegacyrecovery"
+   },
+   "WPFFeatureDisableLegacyRecovery": {
+-    "Content": "Legacy F8 Boot Recovery - Disable",
+-    "Description": "Disables Advanced Boot Options screen that lets you start Windows in advanced troubleshooting modes.",
+-    "category": "Features",
++    "Content": "禁用传统 F8 启动恢复菜单",
++    "Description": "关闭传统 F8 恢复菜单，恢复为默认快速启动行为。",
++    "category": "功能组件",
+     "panel": "1",
+-    "feature": [],
++    "feature": [
++
++    ],
+     "InvokeScript": [
+       "bcdedit /set bootmenupolicy standard"
+     ],
+     "link": "https://winutil.christitus.com/code-reference/features/features/disablelegacyrecovery"
+   },
+   "WPFFeaturesSandbox": {
+-    "Content": "Windows Sandbox - Enable",
+-    "Description": "Windows Sandbox is a lightweight virtual machine that provides a temporary desktop environment to safely run applications and programs in isolation.",
+-    "category": "Features",
++    "Content": "启用 Windows Sandbox（沙盒）",
++    "Description": "启用 Windows 沙盒：一次性、隔离的临时系统环境，适合测试不可信程序（退出即清空）。",
++    "category": "功能组件",
+     "panel": "1",
+     "feature": [
+       "Containers-DisposableClientVM"
+@@ -9800,8 +9977,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/features/sandbox"
+   },
+   "WPFFeatureInstall": {
+-    "Content": "Install Features",
+-    "category": "Features",
++    "Content": "安装/启用所选功能",
++    "category": "功能组件",
+     "panel": "1",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9809,8 +9986,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/features/install"
+   },
+   "WPFPanelAutologin": {
+-    "Content": "AutoLogon - Run",
+-    "category": "Fixes",
++    "Content": "设置自动登录",
++    "category": "修复",
+     "panel": "1",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9818,8 +9995,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/fixes/autologin"
+   },
+   "WPFFixesUpdate": {
+-    "Content": "Windows Update - Reset",
+-    "category": "Fixes",
++    "Content": "重置 Windows 更新组件",
++    "category": "修复",
+     "panel": "1",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9827,8 +10004,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/fixes/update"
+   },
+   "WPFFixesNetwork": {
+-    "Content": "Network - Reset",
+-    "category": "Fixes",
++    "Content": "重置网络设置",
++    "category": "修复",
+     "panel": "1",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9836,8 +10013,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/fixes/network"
+   },
+   "WPFPanelDISM": {
+-    "Content": "System Corruption Scan - Run",
+-    "category": "Fixes",
++    "Content": "系统损坏扫描/修复（SFC/DISM）",
++    "category": "修复",
+     "panel": "1",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9845,8 +10022,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/fixes/dism"
+   },
+   "WPFFixesWinget": {
+-    "Content": "WinGet - Reinstall",
+-    "category": "Fixes",
++    "Content": "重新安装/修复 WinGet",
++    "category": "修复",
+     "panel": "1",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9854,8 +10031,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/fixes/winget"
+   },
+   "WPFPanelComputer": {
+-    "Content": "Computer Management",
+-    "category": "Legacy Windows Panels",
++    "Content": "计算机管理",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9865,8 +10042,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/computer"
+   },
+   "WPFPanelControl": {
+-    "Content": "Control Panel",
+-    "category": "Legacy Windows Panels",
++    "Content": "控制面板",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9876,8 +10053,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/control"
+   },
+   "WPFPanelMouse": {
+-    "Content": "Mouse Properties",
+-    "category": "Legacy Windows Panels",
++    "Content": "鼠标属性",
++    "category": "旧版 Windows 面板",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9887,8 +10064,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/mouse"
+   },
+   "WPFPanelNetwork": {
+-    "Content": "Network Connections",
+-    "category": "Legacy Windows Panels",
++    "Content": "网络连接",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9898,8 +10075,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/network"
+   },
+   "WPFPanelPower": {
+-    "Content": "Power Panel",
+-    "category": "Legacy Windows Panels",
++    "Content": "电源选项",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9909,8 +10086,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/power"
+   },
+   "WPFPanelPrinter": {
+-    "Content": "Printer Panel",
+-    "category": "Legacy Windows Panels",
++    "Content": "打印机设置",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9920,8 +10097,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/printer"
+   },
+   "WPFPanelPrograms": {
+-    "Content": "Programs and Features",
+-    "category": "Legacy Windows Panels",
++    "Content": "程序和功能",
++    "category": "旧版 Windows 面板",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9931,8 +10108,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/programs"
+   },
+   "WPFPanelRegion": {
+-    "Content": "Region",
+-    "category": "Legacy Windows Panels",
++    "Content": "区域设置",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9942,8 +10119,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/region"
+   },
+   "WPFPanelSecurity": {
+-    "Content": "Security and Maintenance",
+-    "category": "Legacy Windows Panels",
++    "Content": "安全与维护",
++    "category": "旧版 Windows 面板",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9953,8 +10130,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/security"
+   },
+   "WPFPanelSound": {
+-    "Content": "Sound Settings",
+-    "category": "Legacy Windows Panels",
++    "Content": "声音设置",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9964,8 +10141,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/sound"
+   },
+   "WPFPanelSystem": {
+-    "Content": "System Properties",
+-    "category": "Legacy Windows Panels",
++    "Content": "系统属性",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9975,8 +10152,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/system"
+   },
+   "WPFPanelTimedate": {
+-    "Content": "Time and Date",
+-    "category": "Legacy Windows Panels",
++    "Content": "日期和时间",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9986,8 +10163,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/timedate"
+   },
+   "WPFPanelFirewall": {
+-    "Content": "Windows Defender Firewall",
+-    "category": "Legacy Windows Panels",
++    "Content": "Windows Defender 防火墙",
++    "category": "旧版 Windows 面板",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -9997,8 +10174,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/firewall"
+   },
+   "WPFPanelRestore": {
+-    "Content": "Windows Restore",
+-    "category": "Legacy Windows Panels",
++    "Content": "系统还原（恢复）",
++    "category": "传统控制面板入口",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -10008,8 +10185,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/legacy-windows-panels/restore"
+   },
+   "WPFWinUtilInstallPSProfile": {
+-    "Content": "CTT PowerShell Profile - Install",
+-    "category": "Powershell Profile Powershell 7+ Only",
++    "Content": "安装 CTT PowerShell 配置文件",
++    "category": "PowerShell 配置文件",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -10017,8 +10194,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/powershell-profile-powershell-7--only/installpsprofile"
+   },
+   "WPFWinUtilUninstallPSProfile": {
+-    "Content": "CTT PowerShell Profile - Remove",
+-    "category": "Powershell Profile Powershell 7+ Only",
++    "Content": "卸载 CTT PowerShell 配置文件",
++    "category": "PowerShell 配置文件",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -10026,8 +10203,8 @@ $sync.configs.feature = @'
+     "link": "https://winutil.christitus.com/code-reference/features/powershell-profile-powershell-7--only/uninstallpsprofile"
+   },
+   "WPFWinUtilSSHServer": {
+-    "Content": "OpenSSH Server - Enable",
+-    "category": "Remote Access",
++    "Content": "启用 OpenSSH Server",
++    "category": "远程访问",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -10229,9 +10406,9 @@ $sync.configs.themes = @'
+ $sync.configs.tweaks = @'
+ {
+   "WPFTweaksActivity": {
+-    "Content": "Activity History - Disable",
+-    "Description": "Erases recent docs, clipboard, and run history.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用活动历史记录",
++    "Description": "关闭 Windows 活动历史（时间线），减少对最近打开文件、剪贴板/运行历史等的记录与同步。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10259,9 +10436,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/activity"
+   },
+   "WPFTweaksHiber": {
+-    "Content": "Hibernation - Disable",
+-    "Description": "Hibernation is really meant for laptops as it saves what's in memory before turning the PC off. It really should never be used.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用休眠",
++    "Description": "关闭休眠功能并释放 hiberfil.sys 以节省磁盘空间。台式机通常不需要；笔记本若依赖休眠可不要选。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10288,9 +10465,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/hiber"
+   },
+   "WPFTweaksWidget": {
+-    "Content": "Widgets - Remove",
+-    "Description": "Removes the annoying widgets in the bottom left of the Taskbar.",
+-    "category": "Essential Tweaks",
++    "Content": "移除小组件",
++    "Description": "移除任务栏左下角的小组件及相关组件。",
++    "category": "基础优化",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      # Sometimes if you dont stop the Widgets process the removal may fail\r\n\r\n      Get-Process *Widget* | Stop-Process\r\n      Get-AppxPackage Microsoft.WidgetsPlatformRuntime -AllUsers | Remove-AppxPackage -AllUsers\r\n      Get-AppxPackage MicrosoftWindows.Client.WebExperience -AllUsers | Remove-AppxPackage -AllUsers\r\n\r\n      Invoke-WinUtilExplorerUpdate -action \"restart\"\r\n      Write-Host \"Removed widgets\"\r\n      "
+@@ -10298,9 +10475,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/widget"
+   },
+   "WPFTweaksRevertStartMenu": {
+-    "Content": "Start Menu Previous Layout - Enable",
+-    "Description": "Bring back the old Start Menu layout from before the gradual rollout of the new one in 25H2. On newer versions of Windows !!THIS TWEAK WILL NOT WORK!!",
+-    "category": "Essential Tweaks",
++    "Content": "恢复旧版开始菜单布局",
++    "Description": "恢复 25H2 逐步推送前的旧版开始菜单布局。较新的 Windows 版本不再支持此优化。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10314,9 +10491,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/revertstartmenu"
+   },
+   "WPFTweaksDisableStoreSearch": {
+-    "Content": "Microsoft Store Recommended Search Results - Disable",
+-    "Description": "Will not display recommended Microsoft Store apps when searching for apps in the Start menu.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用 Microsoft Store 搜索结果",
++    "Description": "在开始菜单搜索应用时，不再显示 Microsoft Store 推荐结果。",
++    "category": "基础优化",
+     "panel": "1",
+     "InvokeScript": [
+       "icacls \"$Env:LocalAppData\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /deny Everyone:F"
+@@ -10327,9 +10504,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/disablestoresearch"
+   },
+   "WPFTweaksLocation": {
+-    "Content": "Location Tracking - Disable",
+-    "Description": "Disables Location Tracking.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用定位服务",
++    "Description": "关闭定位相关权限/服务，阻止系统与应用获取你的地理位置。",
++    "category": "基础优化",
+     "panel": "1",
+     "service": [
+       {
+@@ -10364,9 +10541,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/location"
+   },
+   "WPFTweaksServices": {
+-    "Content": "Services - Set to Manual",
+-    "Description": "Sets some services to Manual startup and adjusts the SvcHostSplitThresholdInKB registry value to better match system memory, which can significantly reduce the number of svchost.exe processes.",
+-    "category": "Essential Tweaks",
++    "Content": "将部分服务设为手动启动",
++    "Description": "把部分系统服务设为手动启动，并根据内存调整 SvcHostSplitThresholdInKB，可明显减少 svchost.exe 进程数量。",
++    "category": "基础优化",
+     "panel": "1",
+     "service": [
+       {
+@@ -10401,9 +10578,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/services"
+   },
+   "WPFTweaksBraveDebloat": {
+-    "Content": "Brave Browser - Debloat",
+-    "Description": "Disables various annoyances like Brave Rewards, Leo AI, Crypto Wallet and VPN.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "Brave 浏览器精简",
++    "Description": "对 Brave 做“降打扰”设置：减少推广/遥测/弹窗等（不影响基础浏览）。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10494,9 +10671,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/bravedebloat"
+   },
+   "WPFTweaksDisableWarningForUnsignedRdp": {
+-    "Content": "RDP Unsigned File Warnings - Disable",
+-    "Description": "Disables warnings shown when launching unsigned RDP files introduced with the latest Windows 10 and 11 updates.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁用未签名 RDP 文件警告",
++    "Description": "关闭新版 Windows 10/11 在启动未签名 RDP 文件时显示的安全警告。仅在你信任这些 RDP 文件来源时使用。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10517,9 +10694,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/disablewarningforunsignedrdp"
+   },
+   "WPFTweaksEdgeDebloat": {
+-    "Content": "Microsoft Edge - Debloat",
+-    "Description": "Disables various telemetry options, popups, and other annoyances in Edge.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "Edge 浏览器精简",
++    "Description": "对 Edge 做“降打扰”设置：减少遥测、推荐、弹窗等（不卸载 Edge）。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10645,9 +10822,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/edgedebloat"
+   },
+   "WPFTweaksConsumerFeatures": {
+-    "Content": "ConsumerFeatures - Disable",
+-    "Description": "Stops promoted app installs and reduces app suggestions from Microsoft Store content.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用“消费者体验/推荐应用”",
++    "Description": "阻止 Windows 自动安装推荐应用/游戏等“消费者内容”，减少系统自带推广。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10661,9 +10838,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/consumerfeatures"
+   },
+   "WPFTweaksTelemetry": {
+-    "Content": "Telemetry - Disable",
+-    "Description": "Disables Microsoft Telemetry.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用遥测",
++    "Description": "关闭 Microsoft 遥测与部分相关数据收集。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10760,9 +10937,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/telemetry"
+   },
+   "WPFTweaksDeliveryOptimization": {
+-    "Content": "Delivery Optimization - Disable",
+-    "Description": "Stops Windows from using your bandwidth to upload updates to other PCs on the internet or local network.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用传递优化",
++    "Description": "阻止 Windows 使用你的带宽向互联网或局域网内的其他电脑上传更新。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10776,9 +10953,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/deliveryoptimization"
+   },
+   "WPFTweaksRemoveEdge": {
+-    "Content": "Microsoft Edge - Remove",
+-    "Description": "Uninstalls Microsoft Edge by creating dummy MicrosoftEdge.exe file in the legacy Edge folder. This tricks Windows into unlocking the official Edge uninstaller allowing for a system-level removal.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "卸载 Microsoft Edge",
++    "Description": "在旧版 Edge 目录创建占位 MicrosoftEdge.exe，以解除 Windows 对官方卸载程序的限制，并执行系统级卸载。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      $Path = Resolve-Path -Path \"$Env:ProgramFiles (x86)\\Microsoft\\Edge\\Application\\*\\Installer\\setup.exe\" | Select-Object -Last 1\r\n\r\n      if (Test-Path $Path) {\r\n          New-Item -Path \"$Env:SystemRoot\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\\MicrosoftEdge.exe\" -Force\r\n          Start-Process -FilePath $Path -ArgumentList \"--uninstall --system-level --force-uninstall --delete-profile\" -Wait\r\n          Write-Host \"Microsoft Edge was removed\"\r\n      } else {\r\n          Write-Host \"Microsoft Edge is not installed\"\r\n      }\r\n      "
+@@ -10789,9 +10966,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/removeedge"
+   },
+   "WPFTweaksDisableBitLocker": {
+-    "Content": "BitLocker - Disable",
+-    "Description": "Disables BitLocker.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用 BitLocker",
++    "Description": "禁用 BitLocker 驱动器加密。操作前请确认已保存恢复密钥。",
++    "category": "基础优化",
+     "panel": "1",
+     "InvokeScript": [
+       "Disable-BitLocker -MountPoint $Env:SystemDrive"
+@@ -10802,9 +10979,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/disablebitlocker"
+   },
+   "WPFTweaksUTC": {
+-    "Content": "Date & Time - Set Time to UTC",
+-    "Description": "Essential for computers that are dual booting. Fixes the time sync with Linux systems.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "时间改为 UTC（双系统）",
++    "Description": "把系统时钟按 UTC 存储，适合与 Linux 双系统共用硬件时钟，避免来回切换导致时间错乱。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10818,9 +10995,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/utc"
+   },
+   "WPFTweaksRemoveOneDrive": {
+-    "Content": "Microsoft OneDrive - Remove",
+-    "Description": "Denies permission to remove OneDrive user files, then uses its own uninstaller to remove it and restores the original permission afterward.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "卸载 OneDrive",
++    "Description": "先保护 OneDrive 用户文件不被误删，再调用其卸载程序移除 OneDrive，最后恢复权限。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      # Deny permission to remove OneDrive folder\r\n      icacls $Env:OneDrive /deny \"Administrators:(D,DC)\"\r\n\r\n      Write-Host \"Uninstalling OneDrive...\"\r\n      Start-Process -FilePath (Join-Path $Env:SystemRoot \"System32\\OneDriveSetup.exe\") -ArgumentList '/uninstall' -Wait\r\n\r\n      # Some of OneDrive files use explorer, and OneDrive uses FileCoAuth\r\n      Write-Host \"Removing leftover OneDrive Files...\"\r\n\r\n      Stop-Process -Name FileCoAuth,Explorer\r\n\r\n      Remove-Item \"$Env:LocalAppData\\Microsoft\\OneDrive\" -Recurse -Force\r\n      Remove-Item \"$Env:ProgramData\\Microsoft OneDrive\" -Recurse -Force\r\n\r\n      # Grant back permission to access OneDrive folder\r\n      icacls $Env:OneDrive /grant \"Administrators:(D,DC)\"\r\n\r\n      if (-not (Get-ChildItem -Path $Env:OneDrive)) {\r\n          Remove-Item -Path $Env:OneDrive -Recurse\r\n          [Environment]::SetEnvironmentVariable('OneDrive', $null, 'User')\r\n      }\r\n\r\n      # Disable OneSyncSvc\r\n      Set-Service -Name OneSyncSvc -StartupType Disabled\r\n      "
+@@ -10831,9 +11008,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/removeonedrive"
+   },
+   "WPFTweaksRemoveHomeAndGallery": {
+-    "Content": "File Explorer Home and Gallery - Disable",
+-    "Description": "Removes the Home and Gallery from Explorer and sets This PC as default.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "移除资源管理器的主页和图库",
++    "Description": "从资源管理器移除“主页”和“图库”，并将“此电脑”设为默认页面。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10861,9 +11038,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/removehomeandgallery"
+   },
+   "WPFTweaksDisplay": {
+-    "Content": "Visual Effects - Set to Best Performance",
+-    "Description": "Sets the system preferences to performance. You can do this manually with sysdm.cpl as well.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "显示效果优先性能",
++    "Description": "关闭部分视觉特效（动画、透明等）以提升响应速度，适合老机器或性能优先。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -10960,9 +11137,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/display"
+   },
+   "WPFTweaksReservedStorage": {
+-    "Content": "Disable Reserved Storage",
+-    "Description": "Disables Windows Reserved Storage (7-10 GB held for updates/temp files). Recommended only on small drives. Re-enable before major Windows feature updates to avoid installation failures.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁用保留存储",
++    "Description": "禁用 Windows 为更新和临时文件预留的约 7-10 GB 空间。仅建议小容量磁盘使用；重大功能更新前应重新启用。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "InvokeScript": [
+       "DISM /Online /Set-ReservedStorageState /State:Disabled"
+@@ -10973,9 +11150,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/reservedstorage"
+   },
+   "WPFTweaksRestorePoint": {
+-    "Content": "Restore Point - Create",
+-    "Description": "Creates a restore point at runtime in case a revert is needed from WinUtil modifications.",
+-    "category": "Essential Tweaks",
++    "Content": "创建系统还原点",
++    "Description": "在执行优化前创建系统还原点，便于出问题时回滚（推荐先勾）。",
++    "category": "基础优化",
+     "panel": "1",
+     "Checked": "False",
+     "registry": [
+@@ -10993,9 +11170,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/restorepoint"
+   },
+   "WPFTweaksEndTaskOnTaskbar": {
+-    "Content": "End Task With Right Click - Enable",
+-    "Description": "Enables option to end task when right clicking a program in the taskbar.",
+-    "category": "Essential Tweaks",
++    "Content": "右键任务栏启用“结束任务”",
++    "Description": "在任务栏程序右键菜单里增加“结束任务”选项，方便一键强退卡死程序。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11009,9 +11186,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/endtaskontaskbar"
+   },
+   "WPFTweaksStorage": {
+-    "Content": "Storage Sense - Disable",
+-    "Description": "Storage Sense deletes temp files automatically.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "关闭存储感知",
++    "Description": "关闭“存储感知”（自动清理临时文件/回收站等），避免系统自动删文件。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11025,9 +11202,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/storage"
+   },
+   "WPFTweaksWindowsAI": {
+-    "Content": "Windows AI - Disable And Remove",
+-    "Description": "Removes and disables all AI features/packages",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁用并移除 Windows AI",
++    "Description": "禁用并移除 Windows 的 AI 功能与相关软件包。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11051,9 +11228,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/windowsai"
+   },
+   "WPFTweaksWPBT": {
+-    "Content": "Windows Platform Binary Table (WPBT) - Disable",
+-    "Description": "If enabled, WPBT allows your computer vendor to execute programs at boot time, such as anti-theft software, software drivers, as well as force install software without user consent. Poses potential security risk.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用 WPBT（平台二进制表）",
++    "Description": "阻止系统执行 OEM 写入的 WPBT 内容，降低厂商预装/持久化程序带来的风险（高级选项）。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11067,9 +11244,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/wpbt"
+   },
+   "WPFTweaksPreventDeviceMetadataFromNetwork": {
+-    "Content": "Prevent Device Companion Apps",
+-    "Description": "Prevents additional software from being installed when plugging in devices (e.g. Ads when plugging in a monitor). Poses potential security risk.",
+-    "category": "Essential Tweaks",
++    "Content": "阻止设备配套应用自动安装",
++    "Description": "阻止接入设备时自动安装额外软件，例如连接显示器后推送的应用。可能影响部分设备功能。",
++    "category": "基础优化",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11083,9 +11260,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/preventdevicemetadatafromnetwork"
+   },
+   "WPFTweaksRazerBlock": {
+-    "Content": "Razer Software Auto-Install - Disable",
+-    "Description": "Blocks ALL Razer Software installations. The hardware works fine without any software.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "阻止 Razer 软件安装",
++    "Description": "阻止 Razer 相关软件/驱动的自动安装（硬件通常仍可用）。注意：也可能影响部分第三方驱动安装流程。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11112,9 +11289,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/razerblock"
+   },
+   "WPFTweaksDisableNotifications": {
+-    "Content": "System Tray Notifications & Calendar - Disable",
+-    "Description": "Disables all Notifications INCLUDING Calendar.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁用通知中心/日历（全部通知）",
++    "Description": "禁用通知中心与日历弹窗（会关闭大部分系统通知）。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11135,9 +11312,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/disablenotifications"
+   },
+   "WPFTweaksBlockAdobeNet": {
+-    "Content": "Adobe URL Block List - Enable",
+-    "Description": "Reduces user interruptions by selectively blocking connections to Adobe's activation and telemetry servers. Credit: Ruddernation-Designs",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "屏蔽 Adobe 联网（激活/遥测）",
++    "Description": "通过 hosts 阻断部分 Adobe 激活/遥测域名，减少弹窗与联网请求（可能影响正版激活/更新，慎用）。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      $hostsUrl = Invoke-RestMethod -Uri https://github.com/Ruddernation-Designs/Adobe-URL-Block-List/raw/refs/heads/master/hosts\r\n      Add-Content -Path \"$Env:SystemRoot\\System32\\drivers\\etc\\hosts\" -Value $hostsUrl\r\n\r\n      ipconfig /flushdns\r\n      Write-Host 'Added Adobe url block list from host file'\r\n      "
+@@ -11148,9 +11325,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/blockadobenet"
+   },
+   "WPFTweaksRightClickMenu": {
+-    "Content": "Right-Click Menu Previous Layout - Enable",
+-    "Description": "Restores the classic context menu when right-clicking in File Explorer, replacing the simplified Windows 11 version.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "恢复经典右键菜单",
++    "Description": "恢复资源管理器右键菜单的经典布局，替换 Windows 11 的精简版菜单。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      New-Item -Path \"HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\" -Name InprocServer32 -Value \"\" -Force\r\n      Stop-Process -Name explorer\r\n      "
+@@ -11161,9 +11338,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/rightclickmenu"
+   },
+   "WPFTweaksDiskCleanup": {
+-    "Content": "Disk Cleanup - Run",
+-    "Description": "Runs Disk Cleanup on Drive C: and removes old Windows Updates.",
+-    "category": "Essential Tweaks",
++    "Content": "运行磁盘清理",
++    "Description": "运行系统磁盘清理并清理旧组件/更新缓存，释放空间（可能需要较长时间）。",
++    "category": "基础优化",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      cleanmgr.exe /d C: /VERYLOWDISK\r\n      Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase\r\n      "
+@@ -11171,9 +11348,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/diskcleanup"
+   },
+   "WPFTweaksDeleteTempFiles": {
+-    "Content": "Temporary Files - Remove",
+-    "Description": "Erases TEMP Folders.",
+-    "category": "Essential Tweaks",
++    "Content": "删除临时文件",
++    "Description": "删除用户临时目录与系统临时目录中的文件，用于快速释放空间（可能删掉某些软件的临时缓存）。",
++    "category": "基础优化",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      Remove-Item -Path \"$Env:Temp\\*\" -Recurse -Force\r\n      Remove-Item -Path \"$Env:SystemRoot\\Temp\\*\" -Recurse -Force\r\n      "
+@@ -11181,9 +11358,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/deletetempfiles"
+   },
+   "WPFTweaksIPv46": {
+-    "Content": "IPv6 - Set IPv4 as Preferred",
+-    "Description": "Setting the IPv4 preference can have latency and security benefits on private networks where IPv6 is not configured.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "优先使用 IPv4（降低 IPv6 优先级）",
++    "Description": "不完全禁用 IPv6，而是让系统优先走 IPv4；在 IPv6 配置不完整的网络里可能更稳定。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11197,9 +11374,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/ipv46"
+   },
+   "WPFTweaksTeredo": {
+-    "Content": "Teredo - Disable",
+-    "Description": "Teredo network tunneling is an IPv6 feature that can cause additional latency, but may cause problems with some games.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁用 Teredo",
++    "Description": "关闭 Teredo（IPv6 隧道）。可能改善延迟/安全，但可能影响部分 Xbox/联机 NAT 场景。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11219,9 +11396,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/teredo"
+   },
+   "WPFTweaksDisableIPv6": {
+-    "Content": "IPv6 - Disable",
+-    "Description": "Disables IPv6.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁用 IPv6",
++    "Description": "禁用 IPv6 协议栈。可能影响部分网络/内网环境；不确定就别选。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11241,9 +11418,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/disableipv6"
+   },
+   "WPFTweaksDisableBGapps": {
+-    "Content": "Background Apps - Disable",
+-    "Description": "Disables all Microsoft Store apps from running in the background, which has to be done individually since Windows 11.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁止商店应用后台运行",
++    "Description": "禁止商店应用在后台运行，减少后台耗电/占用（可能影响通知/后台同步）。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11257,9 +11434,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/disablebgapps"
+   },
+   "WPFTweaksDisableFSO": {
+-    "Content": "Fullscreen Optimizations - Disable",
+-    "Description": "Disables FSO in all applications. NOTE: This will disable Color Management in Exclusive Fullscreen.",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "禁用全屏优化",
++    "Description": "禁用全屏优化（有时可减少某些游戏的输入延迟/兼容问题，但也可能影响色彩管理等）。",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "registry": [
+       {
+@@ -11273,9 +11450,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/disablefso"
+   },
+   "WPFTweaksDisableExplorerAutoDiscovery": {
+-    "Content": "File Explorer Automatic Folder Discovery - Disable",
+-    "Description": "Windows Explorer automatically tries to guess the type of the folder based on its contents, slowing down the browsing experience. WARNING! Will disable File Explorer grouping.",
+-    "category": "Essential Tweaks",
++    "Content": "禁用资源管理器自动识别文件夹类型",
++    "Description": "关闭资源管理器对文件夹“自动套模板”（图片/音乐/视频等）判断，减少卡顿或模板乱跳。",
++    "category": "基础优化",
+     "panel": "1",
+     "InvokeScript": [
+       "\r\n      # Previously detected folders\r\n      $bags = \"HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\"\r\n\r\n      # Folder types lookup table\r\n      $bagMRU = \"HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU\"\r\n\r\n      # Flush Explorer view database\r\n      Remove-Item -Path $bags -Recurse -Force\r\n      Write-Host \"Removed $bags\"\r\n\r\n      Remove-Item -Path $bagMRU -Recurse -Force\r\n      Write-Host \"Removed $bagMRU\"\r\n\r\n      # Every folder\r\n      $allFolders = \"HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\\AllFolders\\Shell\"\r\n\r\n      if (!(Test-Path $allFolders)) {\r\n        New-Item -Path $allFolders -Force\r\n        Write-Host \"Created $allFolders\"\r\n      }\r\n\r\n      # Generic view\r\n      New-ItemProperty -Path $allFolders -Name \"FolderType\" -Value \"NotSpecified\" -PropertyType String -Force\r\n      Write-Host \"Set FolderType to NotSpecified\"\r\n\r\n      Write-Host Please sign out and back in, or restart your computer to apply the changes!\r\n      "
+@@ -11286,9 +11463,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/essential-tweaks/disableexplorerautodiscovery"
+   },
+   "WPFToggleDetailedBSoD": {
+-    "Content": "BSoD Verbose Mode",
+-    "Description": "Gives more information when you blue screen.",
+-    "category": "Customize Preferences",
++    "Content": "详细蓝屏信息",
++    "Description": "蓝屏时显示更详细的信息（对排障更友好）。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11312,9 +11489,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/detailedbsod"
+   },
+   "WPFToggleBatteryPercentage": {
+-    "Content": "System Tray Battery Percentage",
+-    "Description": "Shows numeric battery percentage next to the battery icon in the system tray.",
+-    "category": "Customize Preferences",
++    "Content": "系统托盘显示电池百分比",
++    "Description": "在系统托盘的电池图标旁显示数字电量百分比。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11330,9 +11507,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/batterypercentage"
+   },
+   "WPFToggleDarkMode": {
+-    "Content": "Dark Theme for Windows",
+-    "Description": "Dark Mode for the system and applications.",
+-    "category": "Customize Preferences",
++    "Content": "Windows 深色模式",
++    "Description": "切换系统与应用深色/浅色主题。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11362,9 +11539,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/darkmode"
+   },
+   "WPFToggleShowExt": {
+-    "Content": "File Explorer File Extensions",
+-    "Description": "Shows .file extensions in Explorer (.exe, .png, etc.)",
+-    "category": "Customize Preferences",
++    "Content": "显示文件扩展名",
++    "Description": "在资源管理器中显示文件扩展名（推荐，防止伪装文件）。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11386,9 +11563,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/showext"
+   },
+   "WPFToggleHiddenFiles": {
+-    "Content": "File Explorer Hidden Files",
+-    "Description": "Reveals hidden files in Explorer.",
+-    "category": "Customize Preferences",
++    "Content": "显示隐藏文件",
++    "Description": "在资源管理器中显示隐藏文件。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11410,9 +11587,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/hiddenfiles"
+   },
+   "WPFToggleVerboseLogon": {
+-    "Content": "Logon Verbose Mode",
+-    "Description": "Show detailed messages during startup/shutdown.",
+-    "category": "Customize Preferences",
++    "Content": "登录时显示详细状态信息",
++    "Description": "登录/关机时显示更详细的系统状态消息，便于排障。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11428,9 +11605,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/verboselogon"
+   },
+   "WPFToggleNewOutlook": {
+-    "Content": "Microsoft Outlook New Version",
+-    "Description": "This will ensures the classic Outlook application is used.",
+-    "category": "Customize Preferences",
++    "Content": "新版 Outlook",
++    "Description": "控制 Office/Outlook 是否使用“新版 Outlook”与相关切换入口（偏向保持旧版体验）。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11470,9 +11647,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/newoutlook"
+   },
+   "WPFToggleScrollbars": {
+-    "Content": "Scrollbars Always Visible",
+-    "Description": "If enabled, scrollbars will always be visible. If disabled, Windows will automatically hide scrollbars when not in use.",
+-    "category": "Customize Preferences",
++    "Content": "始终显示滚动条",
++    "Description": "开启后滚动条会始终可见；关闭后 Windows 会在不使用时自动隐藏滚动条。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11488,9 +11665,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/scrollbars"
+   },
+   "WPFToggleMultiplaneOverlay": {
+-    "Content": "Multiplane Overlay",
+-    "Description": "Multiplane Overlay compose multiple image layers, which can sometimes cause issues with graphics cards.",
+-    "category": "Customize Preferences",
++    "Content": "禁用 MPO（多平面叠加）",
++    "Description": "禁用 MPO（多平面叠加）。某些显卡/驱动下可缓解闪屏/黑屏/画面撕裂；但可能略增耗电。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11514,9 +11691,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/multiplaneoverlay"
+   },
+   "WPFToggleMouseAcceleration": {
+-    "Content": "Mouse Acceleration",
+-    "Description": "Makes it so Cursor movement is affected by the speed of your physical mouse movements.",
+-    "category": "Customize Preferences",
++    "Content": "鼠标加速",
++    "Description": "开关鼠标加速（关闭后鼠标更线性，适合游戏）。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11548,9 +11725,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/mouseacceleration"
+   },
+   "WPFToggleNumLock": {
+-    "Content": "Num Lock on Startup",
+-    "Description": "Toggle the Num Lock key state when your computer starts.",
+-    "category": "Customize Preferences",
++    "Content": "开机自动开启 NumLock",
++    "Description": "控制开机后 NumLock 是否默认开启。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11574,9 +11751,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/numlock"
+   },
+   "WPFToggleWindowSnapping": {
+-    "Content": "Window Snapping",
+-    "Description": "Toggles the window snapping feature when dragging windows.",
+-    "category": "Customize Preferences",
++    "Content": "窗口贴靠",
++    "Description": "控制拖动窗口时的窗口贴靠功能。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11592,9 +11769,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/windowsnapping"
+   },
+   "WPFToggleStandbyFix": {
+-    "Content": "S0 Sleep Network Connectivity",
+-    "Description": "Toggles network connectivity during S0 Sleep which is low power idle in modern laptops.",
+-    "category": "Customize Preferences",
++    "Content": "现代待机修复",
++    "Description": "在 S0 睡眠期间禁用网络连接，减少现代笔记本待机发热或偷跑电。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11610,9 +11787,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/standbyfix"
+   },
+   "WPFToggleS3Sleep": {
+-    "Content": "S3 Sleep",
+-    "Description": "Toggles between Modern Standby and S3 Sleep, which cuts off power to the CPU while continuing to refresh the memory.",
+-    "category": "Customize Preferences",
++    "Content": "S3 睡眠（传统睡眠）",
++    "Description": "切换到传统 S3 睡眠（若硬件/BIOS 支持）。有助于解决某些“睡眠唤醒异常”。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11628,9 +11805,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/s3sleep"
+   },
+   "WPFToggleHideSettingsHome": {
+-    "Content": "Settings Home Page",
+-    "Description": "Toggles the Home Page in the Windows Settings app.",
+-    "category": "Customize Preferences",
++    "Content": "移除“设置”首页",
++    "Description": "在 Windows 11 中移除“设置”应用的首页（Home）入口/内容。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11646,9 +11823,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/hidesettingshome"
+   },
+   "WPFToggleBingSearch": {
+-    "Content": "Start Menu Bing Search",
+-    "Description": "Toggles Bing web search results in Windows Search.",
+-    "category": "Customize Preferences",
++    "Content": "开始菜单搜索 Bing 网页结果",
++    "Description": "控制开始菜单搜索是否包含 Bing 网页结果（关掉更隐私、也更干净）。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11664,9 +11841,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/bingsearch"
+   },
+   "WPFToggleLoginBlur": {
+-    "Content": "Logon Screen Acrylic Blur",
+-    "Description": "Toggles the acrylic blur effect on login screen background.",
+-    "category": "Customize Preferences",
++    "Content": "登录界面亚克力模糊",
++    "Description": "控制 Windows 10/11 登录界面背景的亚克力模糊效果。关闭后登录背景会更清晰。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11682,9 +11859,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/loginblur"
+   },
+   "WPFTweaksDisableLockscreen": {
+-    "Content": "Lock Screen - Disable",
+-    "Description": "Skips the lock screen entirely and goes directly to the sign-in screen on boot and wake.",
+-    "category": "Customize Preferences",
++    "Content": "禁用锁屏界面",
++    "Description": "跳过锁屏画面，在开机或唤醒后直接进入登录界面。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11699,9 +11876,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/disablelockscreen"
+   },
+   "WPFToggleStartMenuRecommendations": {
+-    "Content": "Start Menu Recommendations",
+-    "Description": "Toggles the recommendations section in the Start Menu. WARNING: This will also disable Windows Spotlight on your Lock Screen as a side effect.",
+-    "category": "Customize Preferences",
++    "Content": "开始菜单显示“推荐”",
++    "Description": "控制开始菜单是否显示“推荐”区域内容。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11739,9 +11916,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/startmenurecommendations"
+   },
+   "WPFToggleStickyKeys": {
+-    "Content": "Sticky Keys",
+-    "Description": "Toggles the Sticky Keys, which activate when clicking shift rapidly.",
+-    "category": "Customize Preferences",
++    "Content": "粘滞键",
++    "Description": "开关粘滞键（连续按 Shift 触发的辅助功能）。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11757,9 +11934,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/stickykeys"
+   },
+   "WPFToggleTaskbarAlignment": {
+-    "Content": "Taskbar Centered Icons",
+-    "Description": "Toggles the Taskbar alignment either to the left or center.",
+-    "category": "Customize Preferences",
++    "Content": "任务栏图标居中",
++    "Description": "切换任务栏图标居中/靠左（Win11）。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11781,9 +11958,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/taskbaralignment"
+   },
+   "WPFToggleTaskbarSearch": {
+-    "Content": "Taskbar Search Icon",
+-    "Description": "Toggles the Search Button on the Taskbar.",
+-    "category": "Customize Preferences",
++    "Content": "任务栏搜索按钮",
++    "Description": "显示/隐藏任务栏上的搜索按钮/搜索框。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11799,9 +11976,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/taskbarsearch"
+   },
+   "WPFToggleTaskView": {
+-    "Content": "Taskbar Task View Icon",
+-    "Description": "Toggles the Task View Button in the Taskbar.",
+-    "category": "Customize Preferences",
++    "Content": "任务栏任务视图按钮",
++    "Description": "显示/隐藏任务栏上的“任务视图”按钮。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11817,9 +11994,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/taskview"
+   },
+   "WPFToggleGameMode": {
+-    "Content": "Game Mode",
+-    "Description": "Toggles Windows prioritizes gaming performance by allocating system resources to games.",
+-    "category": "Customize Preferences",
++    "Content": "游戏模式",
++    "Description": "控制 Windows 游戏模式，使系统优先向游戏分配资源。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11843,9 +12020,9 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/gamemode"
+   },
+   "WPFToggleLongPaths": {
+-    "Content": "Enable Long Paths",
+-    "Description": "Toggles support for file paths longer than 260 characters in Explorer.",
+-    "category": "Customize Preferences",
++    "Content": "启用长路径支持",
++    "Description": "允许资源管理器使用超过 260 个字符的文件路径。",
++    "category": "个性化选项",
+     "panel": "2",
+     "Type": "Toggle",
+     "registry": [
+@@ -11861,31 +12038,31 @@ $sync.configs.tweaks = @'
+     "link": "https://winutil.christitus.com/code-reference/tweaks/customize-preferences/longpaths"
+   },
+   "WPFOOSUbutton": {
+-    "Content": "O&O ShutUp10++ - Run",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "运行 O&O ShutUp10++（隐私工具）",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "Type": "Button",
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/oosubutton"
+   },
+   "WPFchangedns": {
+-    "Content": "DNS - Set to:",
+-    "category": "z__Advanced Tweaks - CAUTION",
++    "Content": "DNS（快速设置）",
++    "category": "z__高级优化 - 谨慎",
+     "panel": "1",
+     "Type": "Combobox",
+     "ComboItems": "Default DHCP Google Cloudflare Cloudflare_Malware Cloudflare_Malware_Adult Open_DNS Quad9 AdGuard_Ads_Trackers AdGuard_Ads_Trackers_Malware_Adult",
+     "link": "https://winutil.christitus.com/code-reference/tweaks/z--advanced-tweaks---caution/changedns"
+   },
+   "WPFAddUltPerf": {
+-    "Content": "Ultimate Performance Profile - Enable",
+-    "category": "Performance Plans - NOT FOR LAPTOPS",
++    "Content": "添加并启用“卓越性能”电源计划",
++    "category": "性能电源计划 - 不适用于笔记本电脑",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+     "link": "https://winutil.christitus.com/code-reference/tweaks/performance-plans---not-for-laptops/addultperf"
+   },
+   "WPFRemoveUltPerf": {
+-    "Content": "Ultimate Performance Profile - Disable",
+-    "category": "Performance Plans - NOT FOR LAPTOPS",
++    "Content": "移除“卓越性能”电源计划",
++    "category": "性能电源计划 - 不适用于笔记本电脑",
+     "panel": "2",
+     "Type": "Button",
+     "ButtonWidth": "300",
+@@ -12769,9 +12946,9 @@ $inputXML = @'
+                                         <ControlTemplate TargetType="ContextMenu">
+                                             <Border Background="{DynamicResource MainBackgroundColor}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="5" Padding="5">
+                                                 <StackPanel>
+-                                                    <MenuItem Command="Cut" Header="Cut"/>
+-                                                    <MenuItem Command="Copy" Header="Copy"/>
+-                                                    <MenuItem Command="Paste" Header="Paste"/>
++                                                    <MenuItem Command="Cut" Header="剪切"/>
++                                                    <MenuItem Command="Copy" Header="复制"/>
++                                                    <MenuItem Command="Paste" Header="粘贴"/>
+                                                 </StackPanel>
+                                             </Border>
+                                         </ControlTemplate>
+@@ -12906,7 +13083,7 @@ $inputXML = @'
+         </Grid.ColumnDefinitions>
+         <!-- Offline banner -->
+         <Border Name="WPFOfflineBanner" Grid.Row="0" Background="#8B0000" Visibility="Collapsed" Padding="6,4">
+-            <TextBlock Text="&#x26A0; Offline Mode - No Internet Connection" Foreground="White" FontWeight="Bold"
++            <TextBlock Text="&#x26A0; 离线模式 - 无网络连接" Foreground="White" FontWeight="Bold"
+                 HorizontalAlignment="Center" FontSize="13" Background="Transparent"/>
+         </Border>
+         <Grid Grid.Row="1" Background="{DynamicResource MainBackgroundColor}">
+@@ -12923,7 +13100,7 @@ $inputXML = @'
+                     Background="{DynamicResource ButtonInstallBackgroundColor}" Foreground="white" FontWeight="Bold" Name="WPFTab1BT">
+                     <ToggleButton.Content>
+                         <TextBlock FontSize="{DynamicResource TabButtonFontSize}" Background="Transparent" Foreground="{DynamicResource ButtonInstallForegroundColor}" >
+-                            <Underline>I</Underline>nstall
++                            <Underline>I</Underline> 安装
+                         </TextBlock>
+                     </ToggleButton.Content>
+                 </ToggleButton>
+@@ -12931,7 +13108,7 @@ $inputXML = @'
+                     Background="{DynamicResource ButtonTweaksBackgroundColor}" Foreground="{DynamicResource ButtonTweaksForegroundColor}" FontWeight="Bold" Name="WPFTab2BT">
+                     <ToggleButton.Content>
+                         <TextBlock FontSize="{DynamicResource TabButtonFontSize}" Background="Transparent" Foreground="{DynamicResource ButtonTweaksForegroundColor}">
+-                            <Underline>T</Underline>weaks
++                            <Underline>T</Underline> 优化
+                         </TextBlock>
+                     </ToggleButton.Content>
+                 </ToggleButton>
+@@ -12939,7 +13116,7 @@ $inputXML = @'
+                     Background="{DynamicResource ButtonConfigBackgroundColor}" Foreground="{DynamicResource ButtonConfigForegroundColor}" FontWeight="Bold" Name="WPFTab3BT">
+                     <ToggleButton.Content>
+                         <TextBlock FontSize="{DynamicResource TabButtonFontSize}" Background="Transparent" Foreground="{DynamicResource ButtonConfigForegroundColor}">
+-                            <Underline>C</Underline>onfig
++                            <Underline>C</Underline> 设置
+                         </TextBlock>
+                     </ToggleButton.Content>
+                 </ToggleButton>
+@@ -12947,7 +13124,7 @@ $inputXML = @'
+                     Background="{DynamicResource ButtonUpdatesBackgroundColor}" Foreground="{DynamicResource ButtonUpdatesForegroundColor}" FontWeight="Bold" Name="WPFTab4BT">
+                     <ToggleButton.Content>
+                         <TextBlock FontSize="{DynamicResource TabButtonFontSize}" Background="Transparent" Foreground="{DynamicResource ButtonUpdatesForegroundColor}">
+-                            <Underline>U</Underline>pdates
++                            <Underline>U</Underline> 更新
+                         </TextBlock>
+                     </ToggleButton.Content>
+                 </ToggleButton>
+@@ -12955,7 +13132,7 @@ $inputXML = @'
+                     Background="{DynamicResource ButtonWin11ISOBackgroundColor}" Foreground="{DynamicResource ButtonWin11ISOForegroundColor}" FontWeight="Bold" Name="WPFTab5BT">
+                     <ToggleButton.Content>
+                         <TextBlock FontSize="{DynamicResource TabButtonFontSize}" Background="Transparent" Foreground="{DynamicResource ButtonWin11ISOForegroundColor}">
+-                            <Underline>W</Underline>in11 Creator
++                            <Underline>W</Underline> Win11 制作
+                         </TextBlock>
+                     </ToggleButton.Content>
+                 </ToggleButton>
+@@ -12978,7 +13155,7 @@ $inputXML = @'
+                             Name="SearchBar"
+                             Foreground="{DynamicResource MainForegroundColor}" Background="{DynamicResource MainBackgroundColor}"
+                             Padding="3,3,30,0"
+-                            ToolTip="Press Ctrl-F and type app name to filter application list below. Press Esc to reset the filter">
++                            ToolTip="按 Ctrl+F 输入应用名称以筛选下方列表；按 Esc 清除筛选">
+                         </TextBox>
+                         <TextBlock
+                             Name="SearchBarIcon"
+@@ -13010,7 +13187,7 @@ $inputXML = @'
+                     Margin="0,0,2,0"
+                     FontFamily="Segoe MDL2 Assets"
+                     Content="N/A"
+-                    ToolTip="Change the WinUtil UI Theme"
++                    ToolTip="切换 WinUtil 界面主题"
+                 />
+                     <Popup Name="ThemePopup"
+                     IsOpen="False"
+@@ -13018,19 +13195,19 @@ $inputXML = @'
+                     HorizontalAlignment="Right" VerticalAlignment="Top">
+                     <Border Background="{DynamicResource MainBackgroundColor}" BorderBrush="{DynamicResource MainForegroundColor}" BorderThickness="1" CornerRadius="0" Margin="0">
+                         <StackPanel Background="{DynamicResource MainBackgroundColor}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Auto" Name="AutoThemeMenuItem" Foreground="{DynamicResource MainForegroundColor}">
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="自动" Name="AutoThemeMenuItem" Foreground="{DynamicResource MainForegroundColor}">
+                                 <MenuItem.ToolTip>
+-                                    <ToolTip Content="Follow the Windows Theme"/>
++                                    <ToolTip Content="跟随系统主题"/>
+                                 </MenuItem.ToolTip>
+                             </MenuItem>
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Dark" Name="DarkThemeMenuItem" Foreground="{DynamicResource MainForegroundColor}">
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="深色" Name="DarkThemeMenuItem" Foreground="{DynamicResource MainForegroundColor}">
+                                 <MenuItem.ToolTip>
+-                                    <ToolTip Content="Use Dark Theme"/>
++                                    <ToolTip Content="使用深色主题"/>
+                                 </MenuItem.ToolTip>
+                             </MenuItem>
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Light" Name="LightThemeMenuItem" Foreground="{DynamicResource MainForegroundColor}">
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="浅色" Name="LightThemeMenuItem" Foreground="{DynamicResource MainForegroundColor}">
+                                 <MenuItem.ToolTip>
+-                                    <ToolTip Content="Use Light Theme"/>
++                                    <ToolTip Content="使用浅色主题"/>
+                                 </MenuItem.ToolTip>
+                             </MenuItem>
+                         </StackPanel>
+@@ -13048,7 +13225,7 @@ $inputXML = @'
+                     Margin="0,0,2,0"
+                     FontFamily="Segoe MDL2 Assets"
+                     Content="&#xE8D3;"
+-                    ToolTip="Adjust Font Scaling for Accessibility"
++                    ToolTip="调整字体缩放（便于阅读/无障碍）"
+                 />
+                     <Popup Name="FontScalingPopup"
+                     IsOpen="False"
+@@ -13056,7 +13233,7 @@ $inputXML = @'
+                     HorizontalAlignment="Right" VerticalAlignment="Top">
+                     <Border Background="{DynamicResource MainBackgroundColor}" BorderBrush="{DynamicResource MainForegroundColor}" BorderThickness="1" CornerRadius="0" Margin="0">
+                         <StackPanel Background="{DynamicResource MainBackgroundColor}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="200">
+-                            <TextBlock Text="Font Scaling"
++                            <TextBlock Text="字体缩放"
+                                        FontSize="{DynamicResource ButtonFontSize}"
+                                        Foreground="{DynamicResource MainForegroundColor}"
+                                        HorizontalAlignment="Center"
+@@ -13064,7 +13241,7 @@ $inputXML = @'
+                                        FontWeight="Bold"/>
+                             <Separator Margin="5,0,5,5"/>
+                             <StackPanel Orientation="Horizontal" Margin="10,5,10,10">
+-                                <TextBlock Text="Small"
++                                <TextBlock Text="小"
+                                            FontSize="{DynamicResource ButtonFontSize}"
+                                            Foreground="{DynamicResource MainForegroundColor}"
+                                            VerticalAlignment="Center"
+@@ -13077,7 +13254,7 @@ $inputXML = @'
+                                         IsSnapToTickEnabled="True"
+                                         Width="120"
+                                         VerticalAlignment="Center"/>
+-                                <TextBlock Text="Large"
++                                <TextBlock Text="大"
+                                            FontSize="{DynamicResource ButtonFontSize}"
+                                            Foreground="{DynamicResource MainForegroundColor}"
+                                            VerticalAlignment="Center"
+@@ -13091,12 +13268,12 @@ $inputXML = @'
+                                        Margin="10,0,10,5"/>
+                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0,10,10">
+                                 <Button Name="FontScalingResetButton"
+-                                        Content="Reset"
++                                        Content="重置"
+                                         Style="{StaticResource HoverButtonStyle}"
+                                         Width="60" Height="25"
+                                         Margin="5,0,5,0"/>
+                                 <Button Name="FontScalingApplyButton"
+-                                        Content="Apply"
++                                        Content="应用"
+                                         Style="{StaticResource HoverButtonStyle}"
+                                         Width="60" Height="25"
+                                         Margin="5,0,5,0"/>
+@@ -13122,20 +13299,20 @@ $inputXML = @'
+                     HorizontalAlignment="Right" VerticalAlignment="Top">
+                     <Border Background="{DynamicResource MainBackgroundColor}" BorderBrush="{DynamicResource MainForegroundColor}" BorderThickness="1" CornerRadius="0" Margin="0">
+                         <StackPanel Background="{DynamicResource MainBackgroundColor}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Import" Name="ImportMenuItem" Foreground="{DynamicResource MainForegroundColor}">
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="导入" Name="ImportMenuItem" Foreground="{DynamicResource MainForegroundColor}">
+                                 <MenuItem.ToolTip>
+-                                    <ToolTip Content="Import Configuration from exported file."/>
++                                    <ToolTip Content="从导出的文件导入配置。"/>
+                                 </MenuItem.ToolTip>
+                             </MenuItem>
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Export" Name="ExportMenuItem" Foreground="{DynamicResource MainForegroundColor}">
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="导出" Name="ExportMenuItem" Foreground="{DynamicResource MainForegroundColor}">
+                                 <MenuItem.ToolTip>
+-                                    <ToolTip Content="Export Selected Elements and copy execution command to clipboard."/>
++                                    <ToolTip Content="导出所选项目，并将执行命令复制到剪贴板。"/>
+                                 </MenuItem.ToolTip>
+                             </MenuItem>
+                             <Separator/>
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="About" Name="AboutMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Documentation" Name="DocumentationMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
+-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Sponsors" Name="SponsorMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="关于" Name="AboutMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="文档" Name="DocumentationMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
++                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="赞助" Name="SponsorMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
+                         </StackPanel>
+                     </Border>
+                 </Popup>
+@@ -13152,7 +13329,7 @@ $inputXML = @'
+                         FontFamily="Segoe MDL2 Assets"
+                         Foreground="{DynamicResource MainForegroundColor}"
+                         FontSize="{DynamicResource CloseIconFontSize}"
+-                        ToolTip="Minimize"
++                        ToolTip="最小化"
+                         AutomationProperties.Name="Minimize"
+                         Name="WPFMinimizeButton" />
+                     <Button
+@@ -13194,7 +13371,7 @@ $inputXML = @'
+                         FontFamily="Segoe MDL2 Assets"
+                         Foreground="{DynamicResource MainForegroundColor}"
+                         FontSize="{DynamicResource CloseIconFontSize}"
+-                        ToolTip="Close"
++                        ToolTip="关闭"
+                         AutomationProperties.Name="Close"
+                         Name="WPFCloseButton" />
+                 </StackPanel>
+@@ -13202,7 +13379,7 @@ $inputXML = @'
+         </Grid>
+ 
+         <TabControl Name="WPFTabNav" Background="Transparent" Width="Auto" Height="Auto" BorderBrush="Transparent" BorderThickness="0" Grid.Row="2" Grid.Column="0" Padding="-1">
+-            <TabItem Header="Install" Visibility="Collapsed" Name="WPFTab1">
++            <TabItem Header="安装" Visibility="Collapsed" Name="WPFTab1">
+                 <Grid Background="Transparent" >
+                     <Grid.RowDefinitions>
+                         <RowDefinition Height="Auto"/>
+@@ -13211,24 +13388,24 @@ $inputXML = @'
+ 
+                     <!-- Quick Category Search Chips -->
+                     <WrapPanel Grid.Row="0" Orientation="Horizontal" Margin="5,5,5,5" Name="WPFSearchChips">
+-                        <TextBlock Text="Filters"
++                        <TextBlock Text="分类筛选"
+                                    FontSize="{DynamicResource HeaderFontSize}"
+                                    FontFamily="{DynamicResource HeaderFontFamily}"
+                                    Foreground="{DynamicResource LabelboxForegroundColor}"
+                                    Background="Transparent"
+                                    VerticalAlignment="Center"
+                                    Margin="15,0,8,0"/>
+-                        <Button Name="WPFSearchChipAll"             Content="All"               Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipBrowsers"        Content="Browsers"          Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipCommunications"  Content="Communications"    Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipDevelopment"     Content="Development"       Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipDocument"        Content="Document"          Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipGames"           Content="Games"             Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipMicrosoftTools"  Content="Microsoft Tools"   Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipMultimediaTools" Content="Multimedia Tools"  Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipProTools"        Content="Pro Tools"         Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipSelfhostedTools" Content="Selfhosted Tools"  Style="{StaticResource FilterChipStyle}"/>
+-                        <Button Name="WPFSearchChipUtilities"       Content="Utilities"         Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipAll"             Content="全部"               Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipBrowsers"        Content="浏览器"          Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipCommunications"  Content="通信"    Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipDevelopment"     Content="开发"       Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipDocument"        Content="文档"          Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipGames"           Content="游戏"             Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipMicrosoftTools"  Content="微软工具"   Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipMultimediaTools" Content="多媒体工具"  Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipProTools"        Content="专业工具"         Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipSelfhostedTools" Content="自托管工具"  Style="{StaticResource FilterChipStyle}"/>
++                        <Button Name="WPFSearchChipUtilities"       Content="实用工具"         Style="{StaticResource FilterChipStyle}"/>
+                     </WrapPanel>
+ 
+                     <Grid Grid.Row="1" Margin="{DynamicResource TabContentMargin}">
+@@ -13245,7 +13422,7 @@ $inputXML = @'
+                     </Grid>
+                 </Grid>
+             </TabItem>
+-            <TabItem Header="Tweaks" Visibility="Collapsed" Name="WPFTab2">
++            <TabItem Header="优化" Visibility="Collapsed" Name="WPFTab2">
+                 <Grid>
+                     <!-- Main content area with a ScrollViewer -->
+                     <Grid.RowDefinitions>
+@@ -13262,14 +13439,14 @@ $inputXML = @'
+                             </Grid.RowDefinitions>
+ 
+                             <StackPanel Background="{DynamicResource MainBackgroundColor}" Orientation="Vertical" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="5">
+-                                <Label Content="Recommended Selections:" FontSize="{DynamicResource FontSize}" VerticalAlignment="Center" Margin="2"/>
++                                <Label Content="推荐预设：" FontSize="{DynamicResource FontSize}" VerticalAlignment="Center" Margin="2"/>
+                                 <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,0">
+-                                    <Button Name="WPFstandard" Content=" Standard " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFminimal" Content=" Minimal " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFAdvanced" Content=" Advanced " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFClearTweaksSelection" Content=" Clear " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFGetInstalledTweaks" Content=" Get Installed Tweaks " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFAppxRemoval" Content=" AppX Removal " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFstandard" Content=" 标准 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFminimal" Content=" 最小化 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFAdvanced" Content=" 高级 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFClearTweaksSelection" Content=" 清除 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFGetInstalledTweaks" Content=" 获取已安装优化 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFAppxRemoval" Content=" AppX 移除 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+                                 </WrapPanel>
+                             </StackPanel>
+ 
+@@ -13289,19 +13466,19 @@ $inputXML = @'
+                     </ScrollViewer>
+                     <Border Grid.Row="1" Background="{DynamicResource MainBackgroundColor}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="5" HorizontalAlignment="Stretch" Padding="10">
+                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="0">
+-                            <Button Name="WPFTweaksbutton" Content="Run Tweaks" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                            <Button Name="WPFUndoall" Content="Undo Selected Tweaks" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                            <Button Name="WPFTweaksbutton" Content="执行优化" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                            <Button Name="WPFUndoall" Content="撤销所选优化" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+                         </WrapPanel>
+                     </Border>
+                 </Grid>
+             </TabItem>
+-            <TabItem Header="Config" Visibility="Collapsed" Name="WPFTab3">
++            <TabItem Header="配置" Visibility="Collapsed" Name="WPFTab3">
+                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="{DynamicResource TabContentMargin}">
+                     <Grid Name="featurespanel" Grid.Row="1" Background="Transparent">
+                     </Grid>
+                 </ScrollViewer>
+             </TabItem>
+-            <TabItem Header="Updates" Visibility="Collapsed" Name="WPFTab4">
++            <TabItem Header="更新" Visibility="Collapsed" Name="WPFTab4">
+                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="{DynamicResource TabContentMargin}">
+                     <Grid Background="Transparent" MaxWidth="1250" HorizontalAlignment="Center">
+                         <Grid.RowDefinitions>
+@@ -13311,11 +13488,11 @@ $inputXML = @'
+                         </Grid.RowDefinitions>
+ 
+                         <StackPanel Grid.Row="0" Margin="10,10,10,14">
+-                            <TextBlock Text="Windows Update Profiles"
++                            <TextBlock Text="Windows 更新策略"
+                                        FontSize="24"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource MainForegroundColor}"/>
+-                            <TextBlock Text="Choose how Windows receives updates. Each profile replaces the Windows Update settings managed by WinUtil."
++                            <TextBlock Text="选择 Windows 接收更新的方式。每种策略都会替换由 WinUtil 管理的 Windows 更新设置。"
+                                        Margin="0,6,0,0"
+                                        FontSize="13"
+                                        TextWrapping="Wrap"
+@@ -13335,21 +13512,21 @@ $inputXML = @'
+                                         <RowDefinition Height="Auto"/>
+                                     </Grid.RowDefinitions>
+                                     <StackPanel Grid.Row="0" Margin="0,0,0,14">
+-                                        <TextBlock Text="Recommended"
++                                        <TextBlock Text="推荐"
+                                                    FontSize="20"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="Balanced security and stability"
++                                        <TextBlock Text="兼顾安全性与稳定性"
+                                                    Margin="0,4,0,0"
+                                                    FontSize="13"
+                                                    Foreground="{DynamicResource MainForegroundColor}"/>
+                                     </StackPanel>
+                                     <StackPanel Grid.Row="1">
+-                                        <TextBlock Text="- Defers feature updates for 365 days" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="- Defers quality updates for 4 days" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="- Excludes drivers from quality updates" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="- Prevents automatic restarts while a user is signed in" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="Available on Windows Pro, Enterprise, and Education editions."
++                                        <TextBlock Text="- 功能更新延后 365 天" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="- 质量更新延后 4 天" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="- 质量更新不包含驱动程序" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="- 用户登录期间阻止自动重启" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="适用于 Windows 专业版、企业版和教育版。"
+                                                    FontSize="11"
+                                                    FontStyle="Italic"
+                                                    TextWrapping="Wrap"
+@@ -13357,7 +13534,7 @@ $inputXML = @'
+                                     </StackPanel>
+                                     <Button Name="WPFUpdatessecurity"
+                                             Grid.Row="2"
+-                                            Content="Apply Recommended"
++                                            Content="应用推荐设置"
+                                             FontSize="{DynamicResource ConfigTabButtonFontSize}"
+                                             Margin="0,16,0,0"
+                                             Padding="10"/>
+@@ -13372,20 +13549,20 @@ $inputXML = @'
+                                         <RowDefinition Height="Auto"/>
+                                     </Grid.RowDefinitions>
+                                     <StackPanel Grid.Row="0" Margin="0,0,0,14">
+-                                        <TextBlock Text="Windows Default"
++                                        <TextBlock Text="Windows 默认"
+                                                    FontSize="20"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="Return control to Windows"
++                                        <TextBlock Text="将更新控制权交还 Windows"
+                                                    Margin="0,4,0,0"
+                                                    FontSize="13"
+                                                    Foreground="{DynamicResource MainForegroundColor}"/>
+                                     </StackPanel>
+                                     <StackPanel Grid.Row="1">
+-                                        <TextBlock Text="- Removes Windows Update policies applied by WinUtil" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="- Restores update service startup settings" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="- Re-enables update scheduled tasks" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="Use this to undo the Recommended or Disable profile."
++                                        <TextBlock Text="- 移除 WinUtil 应用的 Windows 更新策略" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="- 恢复更新服务的启动设置" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="- 重新启用更新计划任务" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="用此选项撤销“推荐”或“禁用更新”策略。"
+                                                    FontSize="11"
+                                                    FontStyle="Italic"
+                                                    TextWrapping="Wrap"
+@@ -13393,7 +13570,7 @@ $inputXML = @'
+                                     </StackPanel>
+                                     <Button Name="WPFUpdatesdefault"
+                                             Grid.Row="2"
+-                                            Content="Restore Defaults"
++                                            Content="恢复默认设置"
+                                             FontSize="{DynamicResource ConfigTabButtonFontSize}"
+                                             Margin="0,16,0,0"
+                                             Padding="10"/>
+@@ -13408,21 +13585,21 @@ $inputXML = @'
+                                         <RowDefinition Height="Auto"/>
+                                     </Grid.RowDefinitions>
+                                     <StackPanel Grid.Row="0" Margin="0,0,0,14">
+-                                        <TextBlock Text="Disable Updates"
++                                        <TextBlock Text="禁用更新"
+                                                    FontSize="20"
+                                                    FontWeight="Bold"
+                                                    Foreground="Red"/>
+-                                        <TextBlock Text="Advanced use only"
++                                        <TextBlock Text="仅供高级用户使用"
+                                                    Margin="0,4,0,0"
+                                                    FontSize="13"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="Red"/>
+                                     </StackPanel>
+                                     <StackPanel Grid.Row="1">
+-                                        <TextBlock Text="- Disables automatic update policy" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="- Stops update services and scheduled tasks" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="- Clears downloaded update files" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="{DynamicResource MainForegroundColor}"/>
+-                                        <TextBlock Text="Security updates will not be installed while this profile is active."
++                                        <TextBlock Text="- 禁用自动更新策略" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="- 停止更新服务和计划任务" TextWrapping="Wrap" Margin="0,0,0,7" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="- 清理已下载的更新文件" TextWrapping="Wrap" Margin="0,0,0,12" Foreground="{DynamicResource MainForegroundColor}"/>
++                                        <TextBlock Text="启用此策略期间不会安装安全更新。"
+                                                    FontSize="11"
+                                                    FontStyle="Italic"
+                                                    TextWrapping="Wrap"
+@@ -13430,7 +13607,7 @@ $inputXML = @'
+                                     </StackPanel>
+                                     <Button Name="WPFUpdatesdisable"
+                                             Grid.Row="2"
+-                                            Content="Disable Updates"
++                                            Content="禁用更新"
+                                             FontSize="{DynamicResource ConfigTabButtonFontSize}"
+                                             Foreground="Red"
+                                             Margin="0,16,0,0"
+@@ -13440,7 +13617,7 @@ $inputXML = @'
+                         </UniformGrid>
+ 
+                         <Border Grid.Row="2" Style="{StaticResource BorderStyle}" Margin="8,14,8,8" Padding="12">
+-                            <TextBlock Text="Changes apply system-wide. Restart Windows after switching profiles. Use Restore Defaults to undo WinUtil update policies."
++                            <TextBlock Text="更改会作用于整个系统。切换策略后请重启 Windows；可用“恢复默认设置”撤销 WinUtil 更新策略。"
+                                        TextWrapping="Wrap"
+                                        HorizontalAlignment="Center"
+                                        Foreground="{DynamicResource MainForegroundColor}"/>
+@@ -13448,7 +13625,7 @@ $inputXML = @'
+                     </Grid>
+                 </ScrollViewer>
+             </TabItem>
+-            <TabItem Header="Win11ISO" Visibility="Collapsed" Name="WPFTab5">
++            <TabItem Header="Win11ISO（镜像制作）" Visibility="Collapsed" Name="WPFTab5">
+                 <Grid Name="Win11ISOPanel" Margin="{DynamicResource TabContentMargin}" Background="Transparent">
+                     <Grid.RowDefinitions>
+                         <RowDefinition Height="Auto"/>  <!-- Steps 1-4 -->
+@@ -13469,16 +13646,16 @@ $inputXML = @'
+                                 <StackPanel Grid.Column="0" Margin="5,5,15,5">
+                                     <TextBlock FontSize="{DynamicResource FontSize}" FontWeight="Bold"
+                                                Foreground="{DynamicResource MainForegroundColor}" Margin="0,0,0,8">
+-                                        Step 1 - Select Windows 11 ISO
++                                        步骤 1：选择 Windows 11 ISO
+                                     </TextBlock>
+                                     <TextBlock FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource MainForegroundColor}"
+                                                TextWrapping="Wrap" Margin="0,0,0,6">
+-                                        Browse to your locally saved Windows 11 ISO file. Only official ISOs
+-                                        downloaded from Microsoft are supported.
++                                        浏览到你本地保存的 Windows 11 ISO 文件。
++                                        仅支持微软官方原版 ISO。
+                                     </TextBlock>
+                                     <TextBlock FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource MainForegroundColor}"
+                                                TextWrapping="Wrap" Margin="0,0,0,12" FontStyle="Italic">
+-                                        <Run FontWeight="Bold">NOTE:</Run> This is only meant for Fresh and New Windows installs.
++                                        <Run FontWeight="Bold">注意：</Run> 这个流程只适用于全新/重装场景。
+                                     </TextBlock>
+                                     <Grid>
+                                         <Grid.ColumnDefinitions>
+@@ -13491,12 +13668,12 @@ $inputXML = @'
+                                                  VerticalAlignment="Center"
+                                                  Padding="6,4"
+                                                  Margin="0,0,6,0"
+-                                                 Text="No ISO selected..."
++                                                 Text="尚未选择 ISO..."
+                                                  Foreground="{DynamicResource MainForegroundColor}"
+                                                  Background="{DynamicResource MainBackgroundColor}"/>
+                                         <Button Grid.Column="1"
+                                                 Name="WPFWin11ISOBrowseButton"
+-                                                Content="Browse"
++                                                Content="浏览"
+                                                 Width="Auto" Padding="12,0"
+                                                 Height="{DynamicResource ButtonHeight}"/>
+                                     </Grid>
+@@ -13517,29 +13694,29 @@ $inputXML = @'
+                                     <StackPanel>
+                                         <TextBlock FontSize="{DynamicResource FontSize}" FontWeight="Bold"
+                                                    Foreground="OrangeRed" Margin="0,0,0,10">
+-                                            !!WARNING!! You must use an official Microsoft ISO
++                                            ！！警告！！必须使用微软官方 ISO
+                                         </TextBlock>
+                                         <TextBlock FontSize="{DynamicResource FontSize}"
+                                                    Foreground="{DynamicResource MainForegroundColor}"
+                                                    TextWrapping="Wrap" Margin="0,0,0,8">
+-                                            Download the Windows 11 ISO directly from Microsoft.com.
+-                                            Third-party, pre-modified, or unofficial images are not supported
+-                                            and may produce broken results.
++                                            请直接从 Microsoft.com 下载 Windows 11 ISO。
++                                            不支持第三方、预修改或非官方镜像，
++                                            否则可能产生异常结果。
+                                         </TextBlock>
+                                         <TextBlock FontSize="{DynamicResource FontSize}"
+                                                    Foreground="{DynamicResource MainForegroundColor}"
+                                                    TextWrapping="Wrap" Margin="0,0,0,6">
+-                                            On the Microsoft download page, choose:
++                                            在微软下载页面中请选择：
+                                         </TextBlock>
+                                         <TextBlock FontSize="{DynamicResource FontSize}"
+                                                    Foreground="{DynamicResource MainForegroundColor}"
+                                                    TextWrapping="Wrap" Margin="12,0,0,12">
+-                                            - Edition  : Windows 11
+-                                            <LineBreak/>- Language : your preferred language
+-                                            <LineBreak/>- Architecture : 64-bit (x64)
++                                            - 版本：Windows 11
++                                            <LineBreak/>- 语言：你需要的语言
++                                            <LineBreak/>- 架构：64 位（x64）
+                                         </TextBlock>
+                                         <Button Name="WPFWin11ISODownloadLink"
+-                                                Content="Open Microsoft Download Page"
++                                                Content="打开微软下载页面"
+                                                 HorizontalAlignment="Left"
+                                                 Width="Auto" Padding="12,0"
+                                                 Height="{DynamicResource ButtonHeight}"/>
+@@ -13560,26 +13737,26 @@ $inputXML = @'
+                                 <StackPanel Grid.Column="0" Margin="0,0,20,0" VerticalAlignment="Top">
+                                     <TextBlock FontSize="{DynamicResource FontSize}" FontWeight="Bold"
+                                                Foreground="{DynamicResource MainForegroundColor}" Margin="0,0,0,8">
+-                                        Step 2 - Mount &amp; Verify ISO
++                                        步骤 2：挂载并验证 ISO
+                                     </TextBlock>
+                                     <TextBlock FontSize="{DynamicResource FontSize}"
+                                                Foreground="{DynamicResource MainForegroundColor}"
+                                                TextWrapping="Wrap" Margin="0,0,0,12" MaxWidth="320">
+-                                        Mount the ISO and confirm it contains a valid Windows 11
+-                                        install.wim before any modifications are made.
++                                        挂载 ISO，并确认其中包含有效的 Windows 11
++                                        install.wim，然后再开始修改。
+                                     </TextBlock>
+                                     <Button Name="WPFWin11ISOMountButton"
+-                                            Content="Mount &amp; Verify ISO"
++                                            Content="挂载并验证 ISO"
+                                             HorizontalAlignment="Left"
+                                             Width="Auto" Padding="12,0"
+                                             Height="{DynamicResource ButtonHeight}"/>
+                                     <CheckBox Name="WPFWin11ISOInjectDrivers"
+-                                              Content="Inject current system drivers"
++                                              Content="注入当前系统驱动"
+                                               FontSize="{DynamicResource FontSize}"
+                                               Foreground="{DynamicResource MainForegroundColor}"
+                                               IsChecked="False"
+                                               Margin="0,8,0,0"
+-                                              ToolTip="Stages boot-storage drivers for Setup and adds all exported drivers to the selected install.wim edition in one DISM pass."/>
++                                              ToolTip="为安装程序准备启动存储驱动，并通过一次 DISM 操作把导出的全部驱动加入所选 install.wim 版本。"/>
+                                 </StackPanel>
+ 
+                                 <!-- Verification results panel -->
+@@ -13602,7 +13779,7 @@ $inputXML = @'
+                                         <TextBlock FontSize="{DynamicResource FontSize}" FontWeight="Bold"
+                                                    Foreground="{DynamicResource MainForegroundColor}"
+                                                    Margin="0,6,0,4">
+-                                            Select Edition:
++                                            选择版本：
+                                         </TextBlock>
+                                         <ComboBox Name="WPFWin11ISOEditionComboBox"
+                                                   FontSize="{DynamicResource FontSize}"
+@@ -13621,18 +13798,18 @@ $inputXML = @'
+                                         HorizontalAlignment="Left" MinWidth="{DynamicResource ButtonWidth}">
+                                 <TextBlock FontSize="{DynamicResource FontSize}" FontWeight="Bold"
+                                            Foreground="{DynamicResource MainForegroundColor}" Margin="0,0,0,8">
+-                                    Step 3 - Modify install.wim
++                                    步骤 3：修改 install.wim
+                                 </TextBlock>
+                                 <TextBlock FontSize="{DynamicResource FontSize}"
+                                            Foreground="{DynamicResource MainForegroundColor}"
+                                            TextWrapping="Wrap" Margin="0,0,0,12">
+-                                    The ISO contents will be extracted to a temporary working directory,
+-                                    install.wim will be modified (components removed, tweaks applied),
+-                                    and the result will be repackaged. This process may take several minutes
+-                                    depending on your hardware.
++                                    ISO 内容会先解压到临时工作目录，
++                                    然后修改 install.wim（移除组件、应用优化），
++                                    最后重新打包。整个过程可能需要数分钟，
++                                    具体取决于你的硬件性能。
+                                 </TextBlock>
+                                 <Button Name="WPFWin11ISOModifyButton"
+-                                        Content="Run Windows ISO Modification and Creator"
++                                        Content="开始修改并生成镜像"
+                                         HorizontalAlignment="Left"
+                                         Width="Auto" Padding="12,0"
+                                         Height="{DynamicResource ButtonHeight}"/>
+@@ -13652,15 +13829,15 @@ $inputXML = @'
+                                     <TextBlock Grid.Column="0" FontSize="{DynamicResource FontSize}" FontWeight="Bold"
+                                                Foreground="{DynamicResource MainForegroundColor}"
+                                                VerticalAlignment="Center">
+-                                        Step 4 - Output: What would you like to do with the modified image?
++                                        步骤 4：输出方式 - 你想如何处理修改后的镜像？
+                                     </TextBlock>
+                                     <Button Grid.Column="1"
+                                             Name="WPFWin11ISOCleanResetButton"
+-                                            Content="Clean &amp; Reset"
++                                            Content="清理并重置"
+                                             Foreground="OrangeRed"
+                                             Width="Auto" Padding="12,0"
+                                             Height="{DynamicResource ButtonHeight}"
+-                                            ToolTip="Delete the temporary working directory and reset the interface back to Step 1"
++                                            ToolTip="删除临时工作目录，并把界面重置回步骤 1"
+                                             Margin="12,0,0,0"/>
+                                 </Grid>
+ 
+@@ -13673,13 +13850,13 @@ $inputXML = @'
+                                     </Grid.ColumnDefinitions>
+                                     <Button Grid.Column="0"
+                                             Name="WPFWin11ISOChooseISOButton"
+-                                            Content="Save as an ISO File"
++                                            Content="保存为 ISO 文件"
+                                             HorizontalAlignment="Stretch"
+                                             Width="Auto" Padding="12,0"
+                                             Height="{DynamicResource ButtonHeight}"/>
+                                     <Button Grid.Column="2"
+                                             Name="WPFWin11ISOChooseUSBButton"
+-                                            Content="Write Directly to a USB Drive (ERASES DRIVE)"
++                                            Content="直接写入 USB 盘（会清空磁盘）"
+                                             Foreground="OrangeRed"
+                                             HorizontalAlignment="Stretch"
+                                             Width="Auto" Padding="12,0"
+@@ -13695,9 +13872,9 @@ $inputXML = @'
+                                         <TextBlock FontSize="{DynamicResource FontSize}"
+                                                    Foreground="{DynamicResource MainForegroundColor}"
+                                                    TextWrapping="Wrap" Margin="0,0,0,8">
+-                                            <Run FontWeight="Bold" Foreground="OrangeRed">!! All data on the selected USB drive will be permanently erased !!</Run>
++                                            <Run FontWeight="Bold" Foreground="OrangeRed">！！所选 USB 盘上的所有数据都会被永久清除！！</Run>
+                                             <LineBreak/>
+-                                            Select a removable USB drive below, then click Erase &amp; Write.
++                                            在下方选择可移动 USB 盘，然后点击“擦除并写入”。
+                                         </TextBlock>
+                                         <!-- USB drive selector row -->
+                                         <Grid Margin="0,0,0,8">
+@@ -13713,12 +13890,12 @@ $inputXML = @'
+                                                       Margin="0,0,6,0"/>
+                                             <Button Grid.Column="1"
+                                                     Name="WPFWin11ISORefreshUSBButton"
+-                                                    Content="Refresh"
++                                                    Content="刷新"
+                                                     Width="Auto" Padding="8,0"
+                                                     Height="{DynamicResource ButtonHeight}"/>
+                                         </Grid>
+                                         <Button Name="WPFWin11ISOWriteUSBButton"
+-                                                Content="Erase &amp; Write to USB"
++                                                Content="擦除并写入 USB"
+                                                 Foreground="OrangeRed"
+                                                 HorizontalAlignment="Stretch"
+                                                 Width="Auto" Padding="12,0"
+@@ -13740,7 +13917,7 @@ $inputXML = @'
+                                    FontSize="{DynamicResource FontSize}" FontWeight="Bold"
+                                    Foreground="{DynamicResource MainForegroundColor}"
+                                    Margin="0,0,0,4">
+-                            Status Log
++                            状态日志
+                         </TextBlock>
+                         <TextBox Grid.Row="1"
+                                  Name="WPFWin11ISOStatusLog"
+@@ -13753,7 +13930,7 @@ $inputXML = @'
+                                  Foreground="{DynamicResource MainForegroundColor}"
+                                  BorderBrush="{DynamicResource BorderColor}"
+                                  BorderThickness="1"
+-                                 Text="Ready. Please select a Windows 11 ISO to begin."/>
++                                 Text="已就绪。请选择一个 Windows 11 ISO 以开始。"/>
+                     </Grid>
+ 
+                 </Grid>
+@@ -13774,12 +13951,12 @@ $inputXML = @'
+                             </Grid.RowDefinitions>
+ 
+                             <StackPanel Background="{DynamicResource MainBackgroundColor}" Orientation="Vertical" Grid.Row="0" Grid.Column="0" Margin="5">
+-                                <Label Content="Selections:" FontSize="{DynamicResource FontSize}" VerticalAlignment="Center" Margin="2"/>
++                                <Label Content="选择项目：" FontSize="{DynamicResource FontSize}" VerticalAlignment="Center" Margin="2"/>
+                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,0">
+-                                    <Button Name="WPFDefaultAppxSelection" Content=" Default " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFGetInstalledAppx" Content=" Get Installed " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFSelectAllAppx" Content=" Select All " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                                    <Button Name="WPFClearAppxSelection" Content=" Clear Selection " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFDefaultAppxSelection" Content=" 默认 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFGetInstalledAppx" Content=" 获取已安装项 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFSelectAllAppx" Content=" 全选 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                                    <Button Name="WPFClearAppxSelection" Content=" 清空选择 " Margin="2" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+                                 </StackPanel>
+                             </StackPanel>
+ 
+@@ -13800,9 +13977,9 @@ $inputXML = @'
+ 
+                     <Border Grid.Row="1" Background="{DynamicResource MainBackgroundColor}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="5" HorizontalAlignment="Stretch" Padding="10">
+                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+-                            <Button Name="WPFBackToTweaks" Content="Back to Tweaks" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                            <Button Name="WPFInstallSelectedAppx" Content="Install Selected" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+-                            <Button Name="WPFRemoveSelectedAppx" Content="Remove Selected" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                            <Button Name="WPFBackToTweaks" Content="返回优化" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                            <Button Name="WPFInstallSelectedAppx" Content="安装所选项" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
++                            <Button Name="WPFRemoveSelectedAppx" Content="移除所选项" Margin="5" Width="{DynamicResource ButtonWidth}" Height="{DynamicResource ButtonHeight}"/>
+                         </WrapPanel>
+                     </Border>
+                 </Grid>
+@@ -14421,18 +14598,18 @@ try {
+     $sync["Form"] = [Windows.Markup.XamlReader]::Load( $reader )
+     $readerOperationSuccessful = $true
+ } catch [System.Management.Automation.MethodInvocationException] {
+-    Write-Host "We ran into a problem with the XAML code.  Check the syntax for this control..." -ForegroundColor Red
++    Write-Host "XAML 代码存在问题，请检查这个控件附近的语法。" -ForegroundColor Red
+     Write-Host $error[0].Exception.Message -ForegroundColor Red
+ 
+     If ($error[0].Exception.Message -like "*button*") {
+-        write-Host "Ensure your &lt;button in the `$inputXML does NOT have a Click=ButtonClick property.  PS can't handle this`n`n`n`n" -ForegroundColor Red
++        write-Host "请确保 `$inputXML 里的 &lt;button 不要带 Click=ButtonClick 属性，PowerShell 不能直接处理它。`n`n`n`n" -ForegroundColor Red
+     }
+ } catch {
+-    Write-Host "Unable to load Windows.Markup.XamlReader. Double-check syntax and ensure .net is installed." -ForegroundColor Red
++    Write-Host "无法加载 Windows.Markup.XamlReader，请检查语法，并确认 .NET 已安装。" -ForegroundColor Red
+ }
+ 
+ if (-NOT ($readerOperationSuccessful)) {
+-    Write-Host "Failed to parse xaml content using Windows.Markup.XamlReader's Load Method." -ForegroundColor Red
++    Write-Host "使用 Windows.Markup.XamlReader 的 Load 方法解析 XAML 失败。" -ForegroundColor Red
+     Write-Host "Quitting WinUtil..." -ForegroundColor Red
+     Close-WinUtilRunspacePool
+     [System.GC]::Collect()
+@@ -14638,7 +14815,7 @@ $sync["Form"].Add_ContentRendered({
+         # Disable the install tab
+         $sync.WPFTab1BT.IsEnabled = $false
+         $sync.WPFTab1BT.Opacity = 0.5
+-        $sync.WPFTab1BT.ToolTip = "Internet connection required for installing applications."
++        $sync.WPFTab1BT.ToolTip = "安装应用需要网络连接。"
+ 
+         # Disable install-related buttons
+         $sync.WPFInstall.IsEnabled = $false
+@@ -14647,7 +14824,7 @@ $sync["Form"].Add_ContentRendered({
+         $sync.WPFGetInstalled.IsEnabled = $false
+ 
+         # Show offline indicator
+-        Write-Host "Offline mode detected - Install tab disabled." -ForegroundColor Yellow
++        Write-Host "检测到离线模式，已禁用安装标签页。" -ForegroundColor Yellow
+ 
+         # Optionally switch to a different tab if install tab was going to be default
+         Invoke-WPFTab "WPFTab2BT"  # Switch to Tweaks tab instead
+@@ -14772,13 +14949,13 @@ $sync["AboutMenuItem"].Add_Click({
+     Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+ 
+     $authorInfo = @"
+-Author   : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
+-UI       : <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
+-Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
++作者     : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
++界面     : <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
++运行空间 : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
+ GitHub   : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
+-Version  : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version)">$($sync.version)</a>
++版本     : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version)">$($sync.version)</a>
+ "@
+-    Show-CustomDialog -Title "About" -Message $authorInfo
++    Show-CustomDialog -Title "关于" -Message $authorInfo
+ })
+ $sync["DocumentationMenuItem"].Add_Click({
+     Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+@@ -14799,7 +14976,7 @@ $sync["SponsorMenuItem"].Add_Click({
+     } catch {
+         $authorInfo += "An error occurred while fetching or processing the sponsors: $_`n"
+     }
+-    Show-CustomDialog -Title "Sponsors" -Message $authorInfo -EnableScroll $true
++    Show-CustomDialog -Title "赞助" -Message $authorInfo -EnableScroll $true
+ })
+ 
+ # Font Scaling Event Handlers
+@@ -14892,4 +15069,3 @@ function Remove-WinUtilTempScript {
+ $sync["Form"].ShowDialog() | out-null
+ Remove-WinUtilTempScript
+ Stop-Transcript
+-
