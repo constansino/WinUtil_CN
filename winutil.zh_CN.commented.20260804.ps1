@@ -2264,10 +2264,10 @@ function Invoke-WinUtilISOCheckExistingWork {
     $modified = $existingWorkDir.LastWriteTime.ToString("yyyy-MM-dd HH:mm")
     Write-WinUtilISOLog "找到现有工作目录：$($existingWorkDir.FullName)"
     Write-WinUtilISOLog "最后修改时间：$modified - 跳过步骤 1-3，从步骤 4 继续。"
-    Write-WinUtilISOLog "如需改用新的 ISO 重新开始，请点击“清理并重置”。"
+    Write-WinUtilISOLog "如需改用新的 ISO 重新开始，请点击「清理并重置」。"
 
     [System.Windows.MessageBox]::Show(
-        "发现之前的 WinUtil ISO 工作目录：`n`n$($existingWorkDir.FullName)`n`n（最后修改：$modified）`n`n已恢复步骤 4（输出选项），你可以保存已修改的镜像。`n`n如需重新开始，请在步骤 4 点击“清理并重置”。",
+        "发现之前的 WinUtil ISO 工作目录：`n`n$($existingWorkDir.FullName)`n`n（最后修改：$modified）`n`n已恢复步骤 4（输出选项），你可以保存已修改的镜像。`n`n如需重新开始，请在步骤 4 点击「清理并重置」。",
         "找到现有工作目录", "OK", "Info")
 }
 
@@ -6405,7 +6405,10 @@ function Invoke-WPFTab {
             $sync["$ClickedTab"].IsChecked = $true
         }
     }
-    $sync.currentTab = $sync.$tabNav.Items[$tabNumber].Header
+    # Tab headers are localized for display, so keep the internal tab key separate.
+    # Lazy initialization and search routing depend on these stable English keys.
+    $internalTabNames = @("Install", "Tweaks", "Config", "Updates", "Win11ISO", "AppX")
+    $sync.currentTab = $internalTabNames[$tabNumber]
     Initialize-WinUtilTabContent -TabName $sync.currentTab
 
     # Always reset the filter for the current tab
@@ -7055,7 +7058,7 @@ function Invoke-WPFUIThread ($ScriptBlock) {
 function Invoke-WPFUltimatePerformance ([switch]$Enable) {
     if ($Enable) {
         powercfg /setactive (powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Select-String -Pattern '[A-Fa-f0-9-]{36}').Matches.Value
-        [System.Windows.MessageBox]::Show("“卓越性能”电源计划已安装并启用。","成功","OK","Information")
+        [System.Windows.MessageBox]::Show("「卓越性能」电源计划已安装并启用。","成功","OK","Information")
     } else {
         powercfg /restoredefaultschemes
         [System.Windows.MessageBox]::Show("电源计划已恢复默认设置。","成功","OK","Information")
